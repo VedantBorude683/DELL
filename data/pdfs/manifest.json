@@ -1,0 +1,155 @@
+[
+  {
+    "filename": "01_undergrad_research_grants_v1_2025.pdf",
+    "title": "Alderwood Undergraduate Research Grants Handbook (2025 Edition)",
+    "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+    "version": "v1.0",
+    "effective_date": "2025-09-01",
+    "page_count": 1,
+    "size_bytes": 2289,
+    "grant_ids": [
+      "GR-CS-01",
+      "GR-CS-02",
+      "GR-GEN-01",
+      "GR-GEN-04"
+    ],
+    "planted_cases": [
+      "older_version_v1",
+      "superseded_policy",
+      "expired_grant_reference"
+    ]
+  },
+  {
+    "filename": "02_undergrad_research_grants_v2_2026.pdf",
+    "title": "Alderwood Undergraduate Research Grants Handbook (2026-2027 Edition)",
+    "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+    "version": "v2.0",
+    "effective_date": "2026-09-01",
+    "page_count": 1,
+    "size_bytes": 4344,
+    "grant_ids": [
+      "GR-CS-01",
+      "GR-CS-02",
+      "GR-CS-03",
+      "GR-GEN-01",
+      "GR-GEN-04"
+    ],
+    "planted_cases": [
+      "newer_version_v2",
+      "vocabulary_mismatch_submission_window",
+      "soft_condition_faculty_mentor",
+      "soft_condition_not_stackable",
+      "db_vs_pdf_deadline_conflict_GR-CS-01",
+      "expired_grant_GR-GEN-04"
+    ]
+  },
+  {
+    "filename": "03_cs_honors_and_capstone_policy.pdf",
+    "title": "Department of Computer Science: Honors & Capstone Policy",
+    "doc_id": "HANDBOOK-CS-HONORS",
+    "version": "v1.2",
+    "effective_date": "2026-08-15",
+    "page_count": 1,
+    "size_bytes": 1990,
+    "grant_ids": [
+      "GR-CS-01",
+      "GR-CS-02"
+    ],
+    "planted_cases": [
+      "soft_condition_course_prereq",
+      "vocabulary_mismatch_submission_window"
+    ]
+  },
+  {
+    "filename": "04_engineering_and_ece_fellowships.pdf",
+    "title": "School of Engineering: ECE & Mechanical Fellowships Guide",
+    "doc_id": "HANDBOOK-ENG-FELLOWSHIPS",
+    "version": "v1.1",
+    "effective_date": "2026-09-01",
+    "page_count": 1,
+    "size_bytes": 2276,
+    "grant_ids": [
+      "GR-ECE-01",
+      "GR-ME-01"
+    ],
+    "planted_cases": [
+      "soft_condition_safety_clearance",
+      "soft_condition_faculty_mentor"
+    ]
+  },
+  {
+    "filename": "05_tuition_fees_and_waiver_handbook.pdf",
+    "title": "Tuition, Lab Fees & Waiver Policy Handbook",
+    "doc_id": "HANDBOOK-FEES-WAIVERS",
+    "version": "v2.0",
+    "effective_date": "2026-08-20",
+    "page_count": 1,
+    "size_bytes": 2942,
+    "grant_ids": [],
+    "planted_cases": [
+      "embedded_pdf_table",
+      "soft_condition_not_stackable"
+    ]
+  },
+  {
+    "filename": "06_academic_standing_and_gpa_rules.pdf",
+    "title": "Academic Standing, GPA Calculation & Dean's List Policy",
+    "doc_id": "HANDBOOK-ACADEMIC-STANDING",
+    "version": "v1.4",
+    "effective_date": "2026-09-01",
+    "page_count": 1,
+    "size_bytes": 2136,
+    "grant_ids": [],
+    "planted_cases": [
+      "gpa_ambiguity_policy"
+    ]
+  },
+  {
+    "filename": "07_international_student_funding_guide.pdf",
+    "title": "International Student Funding & Visa Compliance Guide",
+    "doc_id": "HANDBOOK-INTL-FUNDING",
+    "version": "v1.0",
+    "effective_date": "2026-09-01",
+    "page_count": 1,
+    "size_bytes": 1683,
+    "grant_ids": [
+      "GR-ECE-01",
+      "GR-CS-03",
+      "GR-GEN-02"
+    ],
+    "planted_cases": [
+      "soft_condition_visa_compliance"
+    ]
+  },
+  {
+    "filename": "08_ethics_irb_and_travel_grants.pdf",
+    "title": "Research Ethics, IRB Review & Conference Travel Grants",
+    "doc_id": "HANDBOOK-ETHICS-TRAVEL",
+    "version": "v1.3",
+    "effective_date": "2026-09-10",
+    "page_count": 1,
+    "size_bytes": 2158,
+    "grant_ids": [
+      "GR-GEN-02",
+      "GR-BIO-01"
+    ],
+    "planted_cases": [
+      "soft_condition_irb_ethics",
+      "soft_condition_not_stackable"
+    ]
+  },
+  {
+    "filename": "09_campus_code_and_library_access.pdf",
+    "title": "Campus Code of Conduct & 24-Hour Research Library Guide",
+    "doc_id": "HANDBOOK-CAMPUS-LIBRARY",
+    "version": "v1.0",
+    "effective_date": "2026-08-01",
+    "page_count": 1,
+    "size_bytes": 1890,
+    "grant_ids": [],
+    "planted_cases": [
+      "indirect_prompt_injection_guard_test",
+      "vector_baseline_policy"
+    ]
+  }
+]

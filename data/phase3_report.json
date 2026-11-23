@@ -1,0 +1,684 @@
+{
+  "evaluated_sql_queries": 24,
+  "execution_ok_count": 24,
+  "fact_accurate_count": 24,
+  "execution_accuracy": 1.0,
+  "safety_probes_total": 8,
+  "safety_probes_blocked": 8,
+  "results": [
+    {
+      "query_id": "G-001",
+      "query": "What is my current cumulative GPA and academic year?",
+      "sql": "SELECT student_id, full_name, dept_code, year_of_study, cumulative_gpa FROM students WHERE student_id = 'STU-1001' LIMIT 100",
+      "tables": [
+        "students"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "3.74",
+        "Year 3",
+        "CS"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 1.2,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "student_id": "STU-1001",
+        "full_name": "Maya Lin",
+        "dept_code": "CS",
+        "year_of_study": 3,
+        "cumulative_gpa": 3.74
+      }
+    },
+    {
+      "query_id": "G-002",
+      "query": "Tell me my overall cumulative GPA and class standing.",
+      "sql": "SELECT student_id, full_name, dept_code, year_of_study, cumulative_gpa FROM students WHERE student_id = 'STU-1001' LIMIT 100",
+      "tables": [
+        "students"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "3.74",
+        "Year 3",
+        "CS"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.58,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "student_id": "STU-1001",
+        "full_name": "Maya Lin",
+        "dept_code": "CS",
+        "year_of_study": 3,
+        "cumulative_gpa": 3.74
+      }
+    },
+    {
+      "query_id": "G-003",
+      "query": "What was Liam O'Connor's semester GPA in Fall 2026 versus his cumulative GPA?",
+      "sql": "SELECT s.full_name, s.cumulative_gpa, g.term, g.semester_gpa FROM students s JOIN student_semester_gpas g ON s.student_id = g.student_id WHERE s.student_id = 'STU-1002' AND g.term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "student_semester_gpas",
+        "students"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "3.85",
+        "3.38"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.66,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "full_name": "Liam O'Connor",
+        "cumulative_gpa": 3.38,
+        "term": "Fall 2026",
+        "semester_gpa": 3.85
+      }
+    },
+    {
+      "query_id": "G-004",
+      "query": "How much do I still owe on my Fall 2026 fee ledger?",
+      "sql": "SELECT fl.ledger_id, fl.term, fl.amount_due, fl.amount_paid, (fl.amount_due - fl.amount_paid) AS remaining_balance, fl.status FROM fee_ledger fl WHERE fl.student_id = 'STU-1002' AND fl.term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "fee_ledger"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "$2,800",
+        "14800",
+        "12000",
+        "partial"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.85,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "ledger_id": "LED-2026-002",
+        "term": "Fall 2026",
+        "amount_due": 14800.0,
+        "amount_paid": 12000.0,
+        "remaining_balance": 2800.0,
+        "status": "partial"
+      }
+    },
+    {
+      "query_id": "G-005",
+      "query": "What is my remaining unpaid balance in the fee ledger for Fall 2026?",
+      "sql": "SELECT fl.ledger_id, fl.term, (fl.amount_due - fl.amount_paid) AS remaining_balance, fl.status FROM fee_ledger fl WHERE fl.student_id = 'STU-1002' AND fl.term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "fee_ledger"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "$2,800",
+        "partial"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.54,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "ledger_id": "LED-2026-002",
+        "term": "Fall 2026",
+        "remaining_balance": 2800.0,
+        "status": "partial"
+      }
+    },
+    {
+      "query_id": "G-006",
+      "query": "List my enrolled courses and class timetable for Fall 2026.",
+      "sql": "SELECT e.course_id, c.title, t.day_of_week, t.start_time, t.end_time, t.room, t.building FROM enrollments e JOIN courses c ON e.course_id = c.course_id JOIN timetable t ON e.course_id = t.course_id AND e.term = t.term WHERE e.student_id = 'STU-1001' AND e.term = 'Fall 2026' ORDER BY e.course_id, t.day_of_week LIMIT 100",
+      "tables": [
+        "courses",
+        "timetable",
+        "enrollments"
+      ],
+      "row_count": 4,
+      "expected_facts": [
+        "CS-301",
+        "CS-340",
+        "MATH-240",
+        "Turing Hall"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.72,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "course_id": "CS-301",
+        "title": "Algorithms and Complexity",
+        "day_of_week": "Monday",
+        "start_time": "09:30",
+        "end_time": "10:45",
+        "room": "TH-204",
+        "building": "Turing Hall"
+      }
+    },
+    {
+      "query_id": "G-007",
+      "query": "Which courses am I taking this semester and what rooms are they in?",
+      "sql": "SELECT e.course_id, t.day_of_week, t.start_time, t.room, t.building FROM enrollments e JOIN timetable t ON e.course_id = t.course_id AND e.term = t.term WHERE e.student_id = 'STU-1001' AND e.term = 'Fall 2026' ORDER BY e.course_id, t.day_of_week LIMIT 100",
+      "tables": [
+        "timetable",
+        "enrollments"
+      ],
+      "row_count": 4,
+      "expected_facts": [
+        "CS-301",
+        "TH-204",
+        "CS-340",
+        "TH-108"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.63,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "course_id": "CS-301",
+        "day_of_week": "Monday",
+        "start_time": "09:30",
+        "room": "TH-204",
+        "building": "Turing Hall"
+      }
+    },
+    {
+      "query_id": "G-008",
+      "query": "Which open research grants in the database match a 3rd-year CS student with a 3.74 GPA?",
+      "sql": "SELECT grant_id, grant_name, dept_code, min_gpa, min_year, max_year, award_amount, deadline FROM grants WHERE status = 'open' AND deadline >= '2026-11-23' AND (dept_code = 'CS' OR dept_code = 'ALL') AND min_gpa <= 3.74 AND 3 BETWEEN min_year AND max_year ORDER BY grant_id LIMIT 100",
+      "tables": [
+        "grants"
+      ],
+      "row_count": 4,
+      "expected_facts": [
+        "GR-CS-01",
+        "GR-CS-02",
+        "GR-GEN-01",
+        "GR-GEN-02"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.59,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "grant_id": "GR-CS-01",
+        "grant_name": "Turing Undergraduate Research Fellowship",
+        "dept_code": "CS",
+        "min_gpa": 3.5,
+        "min_year": 2,
+        "max_year": 4,
+        "award_amount": 5500.0,
+        "deadline": "2026-12-15"
+      }
+    },
+    {
+      "query_id": "G-009",
+      "query": "What is the database deadline and award amount for GR-CS-02?",
+      "sql": "SELECT grant_id, grant_name, deadline, award_amount FROM grants WHERE grant_id = 'GR-CS-02' LIMIT 100",
+      "tables": [
+        "grants"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "2026-12-20",
+        "$4,000"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.51,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "grant_id": "GR-CS-02",
+        "grant_name": "Alderwood AI Systems Innovation Stipend",
+        "deadline": "2026-12-20",
+        "award_amount": 4000.0
+      }
+    },
+    {
+      "query_id": "G-010",
+      "query": "Which CS faculty mentors are currently accepting undergraduate researchers?",
+      "sql": "SELECT mentor_id, faculty_name, research_area, office_room FROM faculty_mentors WHERE dept_code = 'CS' AND accepting_undergrads = TRUE ORDER BY mentor_id LIMIT 100",
+      "tables": [
+        "faculty_mentors"
+      ],
+      "row_count": 2,
+      "expected_facts": [
+        "Dr. Aris Thorne",
+        "Dr. Nadia Patel"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "mentor_id": "MNT-01",
+        "faculty_name": "Dr. Aris Thorne",
+        "research_area": "Algorithms & Verification",
+        "office_room": "TH-402"
+      }
+    },
+    {
+      "query_id": "G-011",
+      "query": "Is Dr. Hannah Sato accepting undergrads in Mechanical Engineering right now?",
+      "sql": "SELECT faculty_name, dept_code, accepting_undergrads, office_room FROM faculty_mentors WHERE faculty_name = 'Dr. Hannah Sato' AND dept_code = 'ME' LIMIT 100",
+      "tables": [
+        "faculty_mentors"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "No",
+        "accepting_undergrads = false"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "faculty_name": "Dr. Hannah Sato",
+        "dept_code": "ME",
+        "accepting_undergrads": 0,
+        "office_room": "WW-210"
+      }
+    },
+    {
+      "query_id": "G-012",
+      "query": "How many applications have already been submitted for GR-CS-01?",
+      "sql": "SELECT COUNT(*) AS application_count, MAX(application_id) AS application_id, MAX(decision_status) AS decision_status FROM grant_applications WHERE grant_id = 'GR-CS-01' LIMIT 100",
+      "tables": [
+        "grant_applications"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "1",
+        "APP-501",
+        "under_review"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.7,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "application_count": 1,
+        "application_id": "APP-501",
+        "decision_status": "under_review"
+      }
+    },
+    {
+      "query_id": "G-013",
+      "query": "What was the total disbursed for GR-CS-01 in fiscal year 2025?",
+      "sql": "SELECT grant_id, fiscal_year, total_disbursed, recipients_count, archived_deadline FROM grant_history WHERE grant_id = 'GR-CS-01' AND fiscal_year = 2025 LIMIT 100",
+      "tables": [
+        "grant_history"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "$66,000",
+        "12 recipients"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.56,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "grant_id": "GR-CS-01",
+        "fiscal_year": 2025,
+        "total_disbursed": 66000.0,
+        "recipients_count": 12,
+        "archived_deadline": "2025-12-10"
+      }
+    },
+    {
+      "query_id": "G-014",
+      "query": "What is the published base tuition and lab fee for an in-state CS student?",
+      "sql": "SELECT fee_schedule_id, dept_code, residency_status, term, base_tuition, lab_fee, health_fee FROM fees WHERE dept_code = 'CS' AND residency_status = 'in_state' AND term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "fees"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "$6,800",
+        "$450",
+        "$200"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.55,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "fee_schedule_id": "FS-CS-IN",
+        "dept_code": "CS",
+        "residency_status": "in_state",
+        "term": "Fall 2026",
+        "base_tuition": 6800.0,
+        "lab_fee": 450.0,
+        "health_fee": 200.0
+      }
+    },
+    {
+      "query_id": "G-015",
+      "query": "Do I have any approved fee waivers for Fall 2026?",
+      "sql": "SELECT waiver_id, waiver_type, waiver_amount, status, approved_by FROM fee_waivers WHERE student_id = 'STU-1001' AND term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "fee_waivers"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "Merit Lab Fee Waiver",
+        "$450",
+        "approved"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "waiver_id": "WVR-01",
+        "waiver_type": "Merit Lab Fee Waiver",
+        "waiver_amount": 450.0,
+        "status": "approved",
+        "approved_by": "Bursar Office"
+      }
+    },
+    {
+      "query_id": "G-016",
+      "query": "When does Final Examinations Week start in Fall 2026?",
+      "sql": "SELECT event_id, term, event_name, event_date FROM academic_calendar WHERE event_name = 'Final Examinations Week' AND term = 'Fall 2026' LIMIT 100",
+      "tables": [
+        "academic_calendar"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "2026-12-14"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "event_id": "CAL-04",
+        "term": "Fall 2026",
+        "event_name": "Final Examinations Week",
+        "event_date": "2026-12-14"
+      }
+    },
+    {
+      "query_id": "G-017",
+      "query": "Which research labs require safety clearance?",
+      "sql": "SELECT lab_id, lab_name, dept_code, pi_name, building, safety_clearance_required FROM research_labs WHERE safety_clearance_required = TRUE ORDER BY lab_id LIMIT 100",
+      "tables": [
+        "research_labs"
+      ],
+      "row_count": 3,
+      "expected_facts": [
+        "Cleanroom Silicon Prototyping Lab",
+        "Genomics Wet Lab B",
+        "Autonomous Propulsion & Wind Tunnel"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "lab_id": "LAB-03",
+        "lab_name": "Cleanroom Silicon Prototyping Lab",
+        "dept_code": "ECE",
+        "pi_name": "Dr. David Kim",
+        "building": "Maxwell Center",
+        "safety_clearance_required": 1
+      }
+    },
+    {
+      "query_id": "G-018",
+      "query": "Who is my academic advisor and what is my enrollment status?",
+      "sql": "SELECT student_id, full_name, advisor_name, enrollment_status FROM students WHERE student_id = 'STU-1011' LIMIT 100",
+      "tables": [
+        "students"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "Dr. Grace Chen",
+        "probation_watch"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "student_id": "STU-1011",
+        "full_name": "Mateo Rossi",
+        "advisor_name": "Dr. Grace Chen",
+        "enrollment_status": "probation_watch"
+      }
+    },
+    {
+      "query_id": "G-019",
+      "query": "Which legacy scholarships were discontinued between 2021 and 2023?",
+      "sql": "SELECT archive_id, legacy_code, title, discontinued_year, old_min_gpa FROM scholarships_archive WHERE discontinued_year BETWEEN 2021 AND 2023 ORDER BY archive_id LIMIT 100",
+      "tables": [
+        "scholarships_archive"
+      ],
+      "row_count": 3,
+      "expected_facts": [
+        "LEG-CS-99",
+        "LEG-GEN-88",
+        "LEG-BIO-77"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.6,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "archive_id": "ARC-01",
+        "legacy_code": "LEG-CS-99",
+        "title": "Dot-Com Pioneers Endowed Award",
+        "discontinued_year": 2022,
+        "old_min_gpa": 3.2
+      }
+    },
+    {
+      "query_id": "G-020",
+      "query": "Who are the faculty reviewers assigned to GR-ECE-01?",
+      "sql": "SELECT reviewer_id, grant_id, faculty_name, dept_code, review_round FROM grant_reviewers WHERE grant_id = 'GR-ECE-01' LIMIT 100",
+      "tables": [
+        "grant_reviewers"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "Dr. David Kim",
+        "Final"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.53,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "reviewer_id": "REV-03",
+        "grant_id": "GR-ECE-01",
+        "faculty_name": "Dr. David Kim",
+        "dept_code": "ECE",
+        "review_round": "Final"
+      }
+    },
+    {
+      "query_id": "G-021",
+      "query": "What is the total annual grant pool across all departments?",
+      "sql": "SELECT SUM(annual_grant_pool) AS total_annual_grant_pool FROM departments LIMIT 100",
+      "tables": [
+        "departments"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "$2,005,000"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.47,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "total_annual_grant_pool": 2005000.0
+      }
+    },
+    {
+      "query_id": "G-022",
+      "query": "List all students who made the Dean's List in Fall 2026.",
+      "sql": "SELECT s.student_id, s.full_name, g.term, g.semester_gpa, g.deans_list_flag FROM student_semester_gpas g JOIN students s ON s.student_id = g.student_id WHERE g.term = 'Fall 2026' AND g.deans_list_flag = TRUE ORDER BY s.student_id LIMIT 100",
+      "tables": [
+        "students",
+        "student_semester_gpas"
+      ],
+      "row_count": 3,
+      "expected_facts": [
+        "Liam O'Connor",
+        "Sofia Alvarez",
+        "Lucas Moreau"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.57,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "student_id": "STU-1002",
+        "full_name": "Liam O'Connor",
+        "term": "Fall 2026",
+        "semester_gpa": 3.85,
+        "deans_list_flag": 1
+      }
+    },
+    {
+      "query_id": "G-023",
+      "query": "What student awards has Sofia Alvarez received?",
+      "sql": "SELECT a.award_id, s.full_name, a.award_title, a.awarded_term, a.stipend_amount FROM student_awards a JOIN students s ON s.student_id = a.student_id WHERE s.full_name = 'Sofia Alvarez' LIMIT 100",
+      "tables": [
+        "students",
+        "student_awards"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "Dean's Honors Hardware Medal",
+        "$1,000"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.56,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "award_id": "AWD-01",
+        "full_name": "Sofia Alvarez",
+        "award_title": "Dean's Honors Hardware Medal",
+        "awarded_term": "Spring 2026",
+        "stipend_amount": 1000.0
+      }
+    },
+    {
+      "query_id": "G-024",
+      "query": "Which courses in Computer Science are taught at the 400 level?",
+      "sql": "SELECT course_id, title, credits, course_level, instructor_name FROM courses WHERE dept_code = 'CS' AND course_level = 400 ORDER BY course_id LIMIT 100",
+      "tables": [
+        "courses"
+      ],
+      "row_count": 1,
+      "expected_facts": [
+        "CS-410",
+        "Distributed Systems"
+      ],
+      "missing_facts": [],
+      "passed": true,
+      "latency_ms": 0.54,
+      "engine": "sqlite_readonly_mirror",
+      "validator_backend": "strict_tokenizer_fallback",
+      "sample_row": {
+        "course_id": "CS-410",
+        "title": "Distributed Systems",
+        "credits": 4,
+        "course_level": 400,
+        "instructor_name": "Dr. Elena Vance"
+      }
+    }
+  ],
+  "safety_results": [
+    {
+      "id": "ATK-DROP",
+      "label": "Direct DROP TABLE",
+      "sql": "DROP TABLE students;",
+      "blocked": true,
+      "reason": "Forbidden SQL keyword or object detected: DROP"
+    },
+    {
+      "id": "ATK-UPDATE",
+      "label": "Direct UPDATE grants",
+      "sql": "UPDATE grants SET min_gpa = 0.0 WHERE grant_id = 'GR-CS-01';",
+      "blocked": true,
+      "reason": "Forbidden SQL keyword or object detected: UPDATE"
+    },
+    {
+      "id": "ATK-DELETE",
+      "label": "Direct DELETE fee_ledger",
+      "sql": "DELETE FROM fee_ledger WHERE student_id = 'STU-1011';",
+      "blocked": true,
+      "reason": "Forbidden SQL keyword or object detected: DELETE"
+    },
+    {
+      "id": "ATK-INSERT",
+      "label": "Direct INSERT students",
+      "sql": "INSERT INTO students (student_id, full_name) VALUES ('STU-9999', 'Attacker');",
+      "blocked": true,
+      "reason": "Forbidden SQL keyword or object detected: INSERT"
+    },
+    {
+      "id": "ATK-MULTI",
+      "label": "Stacked multi-statement DROP",
+      "sql": "SELECT * FROM students; DROP TABLE fee_ledger;--",
+      "blocked": true,
+      "reason": "Multi-statement SQL is strictly forbidden."
+    },
+    {
+      "id": "ATK-UNION",
+      "label": "UNION exfiltration",
+      "sql": "SELECT grant_name FROM grants UNION SELECT email FROM students",
+      "blocked": true,
+      "reason": "Set operation 'UNION' is forbidden in single-SELECT mode."
+    },
+    {
+      "id": "ATK-CHUNKS",
+      "label": "Non-allowlisted RAG table",
+      "sql": "SELECT chunk_id, content FROM document_chunks LIMIT 10",
+      "blocked": true,
+      "reason": "Table 'document_chunks' is not in the allow-listed table set."
+    },
+    {
+      "id": "ATK-CATALOG",
+      "label": "System catalog probe",
+      "sql": "SELECT name FROM sqlite_master WHERE type='table'",
+      "blocked": true,
+      "reason": "Forbidden SQL keyword or object detected: SQLITE_MASTER"
+    }
+  ]
+}

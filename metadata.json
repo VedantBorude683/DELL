@@ -1,0 +1,8 @@
+{
+  "name": "Alderwood Hybrid RAG",
+  "description": "Unified Hybrid RAG university assistant combining PostgreSQL 16 + pgvector, LangGraph routing, verifiable synthesis, and policy handbook retrieval.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "ingestion": {
+    "total_chunks": 33,
+    "prose_chunks": 32,
+    "table_chunks": 1,
+    "flagged_injection_chunks": 1,
+    "grant_bearing_chunks": 13,
+    "linked_grant_chunks": 13,
+    "entity_link_match_rate": 1.0,
+    "linked_grant_ids": [
+      "GR-BIO-01",
+      "GR-CS-01",
+      "GR-CS-02",
+      "GR-CS-03",
+      "GR-ECE-01",
+      "GR-GEN-01",
+      "GR-GEN-02",
+      "GR-GEN-04",
+      "GR-ME-01"
+    ],
+    "embedder_backend": "deterministic_1024d_fallback",
+    "extractors_used": {
+      "01_undergrad_research_grants_v1_2025.pdf": "stdlib_pdf_stream",
+      "02_undergrad_research_grants_v2_2026.pdf": "stdlib_pdf_stream",
+      "03_cs_honors_and_capstone_policy.pdf": "stdlib_pdf_stream",
+      "04_engineering_and_ece_fellowships.pdf": "stdlib_pdf_stream",
+      "05_tuition_fees_and_waiver_handbook.pdf": "stdlib_pdf_stream",
+      "06_academic_standing_and_gpa_rules.pdf": "stdlib_pdf_stream",
+      "07_international_student_funding_guide.pdf": "stdlib_pdf_stream",
+      "08_ethics_irb_and_travel_grants.pdf": "stdlib_pdf_stream",
+      "09_campus_code_and_library_access.pdf": "stdlib_pdf_stream"
+    }
+  },
+  "schema_index": {
+    "total_entries": 75,
+    "tables_indexed": 18,
+    "metric_views_indexed": 6,
+    "embedder_backend": "deterministic_1024d_fallback"
+  },
+  "table_retrieval_eval": {
+    "k": 3,
+    "evaluated_queries": 49,
+    "mean_recall_at_k": 0.8776,
+    "any_expected_hit_rate": 0.9796,
+    "perfect_recall_queries": 37,
+    "misses_sample": [
+      {
+        "query_id": "G-004",
+        "query": "How much do I still owe on my Fall 2026 fee ledger?",
+        "expected": [
+          "fee_ledger",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "fee_ledger",
+          "fees",
+          "student_awards"
+        ],
+        "recall": 0.5
+      },
+      {
+        "query_id": "G-005",
+        "query": "What is my remaining unpaid balance in the fee ledger for Fall 2026?",
+        "expected": [
+          "fee_ledger",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "fee_ledger",
+          "fees",
+          "student_awards"
+        ],
+        "recall": 0.5
+      },
+      {
+        "query_id": "G-006",
+        "query": "List my enrolled courses and class timetable for Fall 2026.",
+        "expected": [
+          "courses",
+          "enrollments",
+          "timetable"
+        ],
+        "retrieved_top_k": [
+          "timetable",
+          "enrollments",
+          "academic_calendar"
+        ],
+        "recall": 0.6667
+      },
+      {
+        "query_id": "G-022",
+        "query": "List all students who made the Dean's List in Fall 2026.",
+        "expected": [
+          "student_semester_gpas",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "student_semester_gpas",
+          "departments",
+          "student_awards"
+        ],
+        "recall": 0.5
+      },
+      {
+        "query_id": "G-050",
+        "query": "Check my eligibility for GR-CS-02 as Liam O'Connor and tell me what mentor condition still applies.",
+        "expected": [
+          "grant_applications",
+          "grants",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "faculty_mentors",
+          "grants",
+          "students"
+        ],
+        "recall": 0.6667
+      },
+      {
+        "query_id": "G-051",
+        "query": "I'm Sofia Alvarez (4th-year ECE, international). What must I verify before receiving the $4,800 Maxwell Hardware Prototyping Grant?",
+        "expected": [
+          "grants",
+          "research_labs",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "grants",
+          "grant_history",
+          "students"
+        ],
+        "recall": 0.6667
+      },
+      {
+        "query_id": "G-053",
+        "query": "Can Mateo Rossi apply for the Franklin Genomics Fieldwork Grant (GR-BIO-01) right now?",
+        "expected": [
+          "fee_ledger",
+          "grants",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "grant_applications",
+          "grants",
+          "grant_history"
+        ],
+        "recall": 0.3333
+      },
+      {
+        "query_id": "G-058",
+        "query": "I'm Chloe Dubois (ECON, Year 3). Can I apply for the Provost Cross-Disciplinary Grant and get a cash payout immediately?",
+        "expected": [
+          "fee_ledger",
+          "grants",
+          "students"
+        ],
+        "retrieved_top_k": [
+          "grants",
+          "grant_history",
+          "students"
+        ],
+        "recall": 0.6667
+      }
+    ]
+  }
+}
