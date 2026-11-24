@@ -4,6 +4,7 @@ from __future__ import annotations
 import math
 import re
 from typing import Any, Sequence
+from functools import lru_cache
 
 _TOKEN_RE = re.compile(r"[a-z0-9][a-z0-9_-]*")
 
@@ -53,25 +54,25 @@ def _sigmoid(x: float) -> float:
 
 
 class Reranker:
-    """Cross-encoder reranker supporting BAAI/bge-reranker-v2-m3 and calibrated local fallback."""
+    """Real local cross-encoder reranker."""
 
     def __init__(
         self,
         model_name: str = "BAAI/bge-reranker-v2-m3",
         *,
-        allow_download: bool = False,
+        allow_download: bool = True,
     ) -> None:
         self.model_name = model_name
-        self.backend_name = "local_cross_term_v2_m3_fallback"
+        self.backend_name = "not_loaded"
         self._cross_encoder = None
-        if allow_download:
-            try:
-                from sentence_transformers import CrossEncoder  # type: ignore
-
-                self._cross_encoder = CrossEncoder(model_name)
-                self.backend_name = f"sentence_transformers:{model_name}"
-            except Exception:
-                self._cross_encoder = None
+        if not allow_download:
+            raise RuntimeError("A local reranker model is required")
+        try:
+            from sentence_transformers import CrossEncoder  # type: ignore
+            self._cross_encoder = CrossEncoder(model_name, device="cpu")
+            self.backend_name = f"sentence_transformers:{model_name}"
+        except Exception as exc:
+            raise RuntimeError(f"Could not load reranker model '{model_name}'") from exc
 
     def score_pairs(
         self,
@@ -171,3 +172,9 @@ class Reranker:
             scores.append(clamped)
 
         return scores
+
+
+@lru_cache(maxsize=2)
+def get_reranker(model_name: str = "BAAI/bge-reranker-v2-m3") -> "Reranker":
+    """Reuse one local reranker model across chat turns."""
+    return Reranker(model_name=model_name)

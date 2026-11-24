@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Sequence
 
 from src.orchestrator.models import RouteType
-from src.rag.embeddings import Embedder, cosine_similarity
+from src.rag.embeddings import Embedder, cosine_similarity, get_embedder
 
 ROUTE_EXEMPLARS: dict[RouteType, tuple[str, ...]] = {
     "sql": (
@@ -148,7 +148,7 @@ class ExemplarIndex:
     """Embedded route exemplar index for calibrated cosine fast-path classification."""
 
     def __init__(self, embedder: Embedder | None = None) -> None:
-        self.embedder = embedder or Embedder()
+        self.embedder = embedder or get_embedder()
         self.entries: list[tuple[RouteType, str, list[float]]] = []
         texts: list[str] = []
         meta: list[tuple[RouteType, str]] = []

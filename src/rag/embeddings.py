@@ -10,6 +10,7 @@ import hashlib
 import math
 import re
 from typing import Sequence
+from functools import lru_cache
 
 EMBEDDING_DIM = 1024
 
@@ -138,20 +139,23 @@ def cosine_similarity(a: Sequence[float], b: Sequence[float]) -> float:
 
 
 class Embedder:
-    """Unified embedder wrapping BAAI/bge-m3 with deterministic 1024-dim fallback."""
+    """Local sentence-transformer embedder. No synthetic or fallback vectors."""
 
-    def __init__(self, model_name: str = "BAAI/bge-m3", allow_download: bool = False) -> None:
+    def __init__(self, model_name: str = "BAAI/bge-m3", allow_download: bool = True) -> None:
         self.model_name = model_name
-        self.backend_name = "deterministic_1024d_fallback"
+        self.backend_name = "not_loaded"
         self._st_model = None
-        if allow_download:
-            try:
-                from sentence_transformers import SentenceTransformer  # type: ignore
-
-                self._st_model = SentenceTransformer(model_name)
-                self.backend_name = f"sentence_transformers:{model_name}"
-            except Exception:
-                self._st_model = None
+        if not allow_download:
+            raise RuntimeError("Local embeddings require sentence-transformers; allow_download=False is not supported")
+        try:
+            from sentence_transformers import SentenceTransformer  # type: ignore
+            self._st_model = SentenceTransformer(model_name, device="cpu")
+            self.backend_name = f"sentence_transformers:{model_name}"
+        except Exception as exc:
+            raise RuntimeError(
+                f"Could not load local embedding model '{model_name}'. "
+                "The model must be available locally or downloadable at startup."
+            ) from exc
 
     def embed_one(self, text: str) -> list[float]:
         return self.embed_batch([text])[0]
@@ -163,3 +167,9 @@ class Embedder:
             arr = self._st_model.encode(list(texts), normalize_embeddings=True)
             return [row.tolist() for row in arr]
         return [_encode_fallback(t) for t in texts]
+
+
+@lru_cache(maxsize=2)
+def get_embedder(model_name: str = "BAAI/bge-m3") -> "Embedder":
+    """Reuse one local embedding model across all chat turns."""
+    return Embedder(model_name=model_name)

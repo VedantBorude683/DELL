@@ -33,50 +33,34 @@ def load_student_profile(
     root_dir: Path | None = None,
     cfg: AppConfig | None = None,
 ) -> StudentIdentity | None:
-    """Load authoritative student identity from Postgres or SQLite read-only DB."""
+    """Load authoritative student identity from Postgres read-only DB."""
     if not persona_student_id:
         return None
     root = root_dir or Path(".")
     active_cfg = cfg or AppConfig.load(root / "config.yaml")
 
     ro_pg_url = os.environ.get("READONLY_DATABASE_URL", "").strip()
-    use_postgres = os.environ.get("USE_POSTGRES", "").lower() == "true"
     row_dict: dict[str, Any] | None = None
 
-    if ro_pg_url and ("alderwood_ro_password" not in ro_pg_url or use_postgres):
-        try:
-            from sqlalchemy import create_engine, text  # type: ignore
+    if not ro_pg_url:
+        raise RuntimeError("READONLY_DATABASE_URL is required; SQLite fallback is disabled")
+    try:
+        from sqlalchemy import create_engine, text  # type: ignore
 
-            engine = create_engine(ro_pg_url, pool_pre_ping=True)
-            with engine.connect() as conn:
-                res = conn.execute(
-                    text(
-                        "SELECT student_id, full_name, email, dept_code, year_of_study, "
-                        "cumulative_gpa, semester_gpa, advisor_name, enrollment_status, residency_status "
-                        "FROM students WHERE student_id = :sid"
-                    ),
-                    {"sid": persona_student_id},
-                ).mappings().first()
-                if res:
-                    row_dict = dict(res)
-        except Exception:
-            row_dict = None
-
-    if row_dict is None:
-        db_path = (root / active_cfg.sqlite_mirror_path).resolve()
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        conn.row_factory = sqlite3.Row
-        try:
-            r = conn.execute(
-                "SELECT student_id, full_name, email, dept_code, year_of_study, "
-                "cumulative_gpa, semester_gpa, advisor_name, enrollment_status, residency_status "
-                "FROM students WHERE student_id = ?",
-                (persona_student_id,),
-            ).fetchone()
-            if r:
-                row_dict = dict(r)
-        finally:
-            conn.close()
+        engine = create_engine(ro_pg_url, pool_pre_ping=True)
+        with engine.connect() as conn:
+            res = conn.execute(
+                text(
+                    "SELECT student_id, full_name, email, dept_code, year_of_study, "
+                    "cumulative_gpa, semester_gpa, advisor_name, enrollment_status, residency_status "
+                    "FROM students WHERE student_id = :sid"
+                ),
+                {"sid": persona_student_id},
+            ).mappings().first()
+            if res:
+                row_dict = dict(res)
+    except Exception as exc:
+        raise RuntimeError(f"Postgres identity lookup failed: {exc}") from exc
 
     if row_dict is None:
         return None

@@ -119,11 +119,32 @@ def llm(
             config_kwargs["response_schema"] = schema
 
         prompt_text = "\n\n".join(f"[{m.get('role', 'user')}] {m['content']}" for m in messages)
-        resp = client.models.generate_content(
-            model=model_name,
-            contents=prompt_text,
-            config=types.GenerateContentConfig(**config_kwargs) if config_kwargs else None,
-        )
+        last_error: Exception | None = None
+        resp = None
+        for attempt in range(3):
+            try:
+                resp = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt_text,
+                    config=types.GenerateContentConfig(**config_kwargs) if config_kwargs else None,
+                )
+                break
+            except Exception as exc:
+                last_error = exc
+                status = getattr(exc, "status_code", None)
+                code = getattr(exc, "code", None)
+                message = str(exc).upper()
+                transient = (
+                    status in (429, 503, 502, 504)
+                    or code in (429, 503, 502, 504)
+                    or "UNAVAILABLE" in message
+                    or "RESOURCE_EXHAUSTED" in message
+                )
+                if not transient or attempt == 2:
+                    raise
+                time.sleep(2 ** (attempt + 1))
+        if resp is None:
+            raise RuntimeError("LLM request failed after provider retries") from last_error
         raw_text = resp.text or ""
         usage = getattr(resp, "usage_metadata", None)
         if usage is not None:
@@ -149,7 +170,7 @@ def llm(
             method="POST",
         )
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=120) as resp:
                 data = json.loads(resp.read().decode("utf-8"))
         except urllib.error.HTTPError as exc:
             err_body = exc.read().decode("utf-8", "replace")

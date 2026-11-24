@@ -17,8 +17,8 @@ from src.doc_branch.hyde_and_crag import (
     grade_passages_crag,
 )
 from src.doc_branch.models import DocumentSearchResult, MetadataFilter, Passage
-from src.doc_branch.reranker import Reranker
-from src.rag.embeddings import Embedder, cosine_similarity
+from src.doc_branch.reranker import Reranker, get_reranker
+from src.rag.embeddings import Embedder, cosine_similarity, get_embedder
 
 
 def _format_citation(chunk: dict[str, Any]) -> str:
@@ -223,111 +223,22 @@ def hybrid_search_chunks(
     """Run vector + FTS hybrid search over metadata-filtered chunks and fuse with RRF."""
     root = root_dir or Path(".")
     active_cfg = cfg or AppConfig.load(root / "config.yaml")
-    active_embedder = embedder or Embedder(
-        model_name=str(active_cfg.raw.get("models", {}).get("embedding_model", "BAAI/bge-m3"))
+    active_embedder = embedder or get_embedder(
+        str(active_cfg.raw.get("models", {}).get("embedding_model", "BAAI/bge-m3"))
     )
 
     pg_url = os.environ.get("DATABASE_URL", "").strip()
-    use_postgres = os.environ.get("USE_POSTGRES", "").lower() == "true"
-    if pg_url and ("alderwood_password" not in pg_url or use_postgres) and cached_chunks is None:
-        return _hybrid_search_postgres(
-            query,
-            filters=filters,
-            vector_top_k=vector_top_k,
-            fts_top_k=fts_top_k,
-            rrf_k=rrf_k,
-            active_cfg=active_cfg,
-            active_embedder=active_embedder,
-        )
-
-    # Load and metadata-filter SQLite mirror chunks (or filter cached_chunks in-memory)
-    if cached_chunks is None:
-        db_path = (root / active_cfg.sqlite_mirror_path).resolve()
-        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        conn.row_factory = sqlite3.Row
-        where_sql, params = _build_sqlite_where(filters)
-        rows = conn.execute(
-            f"""
-            SELECT chunk_id, doc_id, version, effective_date, grant_id, dept_code, year_scope,
-                   page_num, chunk_type, content, structured_table_json, injection_flagged, embedding_json
-            FROM document_chunks
-            {where_sql}
-            """,
-            params,
-        ).fetchall()
-        conn.close()
-        chunks = [
-            {
-                "chunk_id": r["chunk_id"],
-                "doc_id": r["doc_id"],
-                "version": r["version"],
-                "effective_date": r["effective_date"],
-                "grant_id": r["grant_id"],
-                "dept_code": r["dept_code"],
-                "year_scope": r["year_scope"],
-                "page_num": int(r["page_num"]),
-                "chunk_type": r["chunk_type"],
-                "content": r["content"],
-                "structured_table_json": json.loads(r["structured_table_json"])
-                if r["structured_table_json"]
-                else None,
-                "injection_flagged": bool(r["injection_flagged"]),
-                "embedding": json.loads(r["embedding_json"]) if r["embedding_json"] else [],
-            }
-            for r in rows
-        ]
-    else:
-        chunks = []
-        for c in cached_chunks:
-            if filters:
-                if filters.grant_ids and c.get("grant_id") not in filters.grant_ids:
-                    continue
-                if filters.doc_ids and c.get("doc_id") not in filters.doc_ids:
-                    continue
-                if filters.version and c.get("version") != filters.version:
-                    continue
-                if filters.dept_code and c.get("dept_code") not in (filters.dept_code, "ALL", None):
-                    continue
-                if filters.year_scope and c.get("year_scope") not in (filters.year_scope, None):
-                    continue
-                if filters.exclude_title_banners and str(c.get("chunk_id", "")).endswith("_c01"):
-                    continue
-            chunks.append(dict(c))
-
-    if not chunks:
-        return [], "sqlite_vector_fts5_rrf"
-
-    q_vec = active_embedder.embed_one(query)
-    vec_scored: list[tuple[str, float]] = []
-    for c in chunks:
-        sim = cosine_similarity(q_vec, c["embedding"])
-        c["vec_sim"] = round(sim, 6)
-        vec_scored.append((c["chunk_id"], sim))
-    vec_scored.sort(key=lambda item: item[1], reverse=True)
-    vec_ranks = {cid: rank for rank, (cid, _) in enumerate(vec_scored[:vector_top_k], start=1)}
-
-    fts_ranks = _sqlite_fts5_ranks(query, chunks, fts_top_k)
-
-    fused: list[dict[str, Any]] = []
-    for c in chunks:
-        cid = c["chunk_id"]
-        v_rank = vec_ranks.get(cid)
-        f_rank = fts_ranks.get(cid, (None, 0.0))[0]
-        f_score = fts_ranks.get(cid, (None, 0.0))[1]
-        if v_rank is None and f_rank is None:
-            continue
-        rrf = (1.0 / (rrf_k + v_rank) if v_rank is not None else 0.0) + (
-            1.0 / (rrf_k + f_rank) if f_rank is not None else 0.0
-        )
-        merged = dict(c)
-        merged["vector_rank"] = v_rank
-        merged["fts_rank"] = f_rank
-        merged["fts_score"] = f_score
-        merged["rrf_score"] = round(rrf, 6)
-        fused.append(merged)
-
-    fused.sort(key=lambda x: (x["rrf_score"], x["vec_sim"]), reverse=True)
-    return fused, "sqlite_vector_fts5_rrf"
+    if not pg_url:
+        raise RuntimeError("DATABASE_URL is required for real pgvector document search")
+    return _hybrid_search_postgres(
+        query,
+        filters=filters,
+        vector_top_k=vector_top_k,
+        fts_top_k=fts_top_k,
+        rrf_k=rrf_k,
+        active_cfg=active_cfg,
+        active_embedder=active_embedder,
+    )
 
 
 def search_documents(
@@ -354,11 +265,11 @@ def search_documents(
     rerank_top_k = int(top_k if top_k is not None else ret_cfg.get("rerank_top_k", 5))
     rerank_threshold = float(ret_cfg.get("rerank_score_threshold", 0.42))
 
-    active_embedder = embedder or Embedder(
-        model_name=str(active_cfg.raw.get("models", {}).get("embedding_model", "BAAI/bge-m3"))
+    active_embedder = embedder or get_embedder(
+        str(active_cfg.raw.get("models", {}).get("embedding_model", "BAAI/bge-m3"))
     )
-    active_reranker = reranker or Reranker(
-        model_name=str(active_cfg.raw.get("models", {}).get("reranker_model", "BAAI/bge-reranker-v2-m3"))
+    active_reranker = reranker or get_reranker(
+        str(active_cfg.raw.get("models", {}).get("reranker_model", "BAAI/bge-reranker-v2-m3"))
     )
 
     started = time.perf_counter()

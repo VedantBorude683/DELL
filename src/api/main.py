@@ -9,10 +9,13 @@ Or run directly with built-in stdlib HTTP fallback if uvicorn isn't installed:
 from __future__ import annotations
 
 import json
+import os
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from typing import Any
+
+from fastapi import UploadFile, File
 
 ROOT = Path(__file__).resolve().parent.parent.parent
 if str(ROOT) not in sys.path:
@@ -27,10 +30,22 @@ from src.orchestrator.identity import list_student_personas
 
 def handle_health() -> dict[str, Any]:
     cfg = AppConfig.load(ROOT / "config.yaml")
+    database_status = "unconfigured"
+    try:
+        ro_url = os.environ.get("READONLY_DATABASE_URL", "").strip()
+        if ro_url:
+            from sqlalchemy import create_engine, text
+            engine = create_engine(ro_url, pool_pre_ping=True)
+            with engine.connect() as conn:
+                conn.execute(text("SELECT 1"))
+            database_status = "connected_readonly"
+    except Exception as exc:
+        database_status = f"error: {type(exc).__name__}"
     return {
         "status": "ok",
         "app_name": cfg.raw.get("app", {}).get("name", "Alderwood University Hybrid RAG"),
         "current_date": cfg.current_date,
+        "database": database_status,
     }
 
 
@@ -95,9 +110,9 @@ def create_fastapi_app() -> Any:
             return handle_personas()
 
         @api.post("/chat")
-        def post_chat(req: ChatRequest) -> dict[str, Any]:
+        def post_chat(payload: dict[str, Any]) -> dict[str, Any]:
             try:
-                return handle_chat(req.model_dump())
+                return handle_chat(payload)
             except ValueError as exc:
                 raise HTTPException(status_code=400, detail=str(exc)) from exc
 
@@ -108,6 +123,44 @@ def create_fastapi_app() -> Any:
         @api.post("/mcp/inspect")
         def post_mcp_inspect(req: MCPInspectRequest) -> dict[str, Any]:
             return handle_mcp_inspect(req.model_dump())
+
+        @api.post("/sources/pdf")
+        async def upload_pdf(file: UploadFile = File(...)) -> dict[str, Any]:
+            if not file.filename or not file.filename.lower().endswith(".pdf"):
+                raise HTTPException(status_code=400, detail="Only PDF files are accepted")
+            cfg = AppConfig.load(ROOT / "config.yaml")
+            pdf_dir = ROOT / cfg.pdf_dir
+            pdf_dir.mkdir(parents=True, exist_ok=True)
+            target = pdf_dir / Path(file.filename).name
+            target.write_bytes(await file.read())
+
+            manifest_path = pdf_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.exists() else []
+            if not any(str(item.get("filename")) == target.name for item in manifest):
+                from datetime import date
+                doc_id = "HANDBOOK-UPLOADED-" + target.stem.upper().replace("-", "_").replace(" ", "_")
+                manifest.append({
+                    "filename": target.name,
+                    "title": target.stem,
+                    "doc_id": doc_id,
+                    "version": "uploaded",
+                    "effective_date": date.today().isoformat(),
+                    "page_count": 0,
+                    "size_bytes": target.stat().st_size,
+                    "grant_ids": [],
+                    "planted_cases": ["user_uploaded_pdf"],
+                })
+                manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+
+            if not os.environ.get("DATABASE_URL", "").strip():
+                raise HTTPException(status_code=503, detail="DATABASE_URL is not configured")
+            from src.ingestion.pdf_ingestor import ingest_pdfs
+            stats = ingest_pdfs(ROOT, cfg=cfg, use_llm_fallback=False)
+            return {
+                "filename": target.name,
+                "doc_id": next((item["doc_id"] for item in manifest if item["filename"] == target.name), ""),
+                "ingestion": stats,
+            }
 
         return api
     except ImportError:

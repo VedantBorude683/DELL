@@ -5,12 +5,20 @@ import dataclasses
 import time
 from pathlib import Path
 from typing import Any
+from functools import lru_cache
 
 from src.config import AppConfig, FeatureFlags
 from src.llm.client import capture_llm_usage
 from src.orchestrator.graph import build_orchestrator_graph, run_orchestrator_turn
 from src.orchestrator.models import ConversationMemory
 from src.synthesis import synthesize_answer
+
+
+@lru_cache(maxsize=4)
+def _cached_graph(root_dir: str, cfg_signature: str) -> Any:
+    root = Path(root_dir)
+    cfg = AppConfig.load(root / "config.yaml")
+    return build_orchestrator_graph(cfg=cfg, root_dir=root)
 
 
 def apply_feature_flag_overrides(
@@ -192,10 +200,13 @@ def run_assistant_query(
     root = root_dir or Path(".")
     base_cfg = cfg or AppConfig.load(root / "config.yaml")
     active_cfg = apply_feature_flag_overrides(base_cfg, feature_flags_override)
-    active_graph = graph if (graph is not None and not feature_flags_override) else build_orchestrator_graph(
-        cfg=active_cfg,
-        root_dir=root,
-    )
+    if graph is not None:
+        active_graph = graph
+    elif feature_flags_override:
+        active_graph = build_orchestrator_graph(cfg=active_cfg, root_dir=root)
+    else:
+        cfg_signature = str(sorted((active_cfg.raw.get("feature_flags") or {}).items()))
+        active_graph = _cached_graph(str(root.resolve()), cfg_signature)
 
     t0 = time.perf_counter()
     with capture_llm_usage() as llm_calls:

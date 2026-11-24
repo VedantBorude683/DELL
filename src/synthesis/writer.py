@@ -259,18 +259,6 @@ def generate_claims_with_writer(
 ) -> tuple[list[Claim], str]:
     """Generate structured JSON claims via custom writer / STRONG_MODEL LLM or deterministic builder."""
     query = str(state.get("query") or "")
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-
-    if writer_fn is None and (not api_key or api_key == "MY_GEMINI_API_KEY"):
-        claims = build_grounded_claims_from_sources(
-            state,
-            registry,
-            conflicts=conflicts,
-            deadline_notices=deadline_notices,
-            current_date=cfg.current_date,
-        )
-        return claims, "deterministic_grounded_writer"
-
     # Build explicit source bundle prompt for STRONG_MODEL JSON writer (or unit-test writer_fn)
     sql_lines = [
         f"- source_id={sid}: {row}" for sid, row in registry.sql_rows.items()
@@ -300,6 +288,8 @@ def generate_claims_with_writer(
                 "3. Categorize hard DB facts/eligibility thresholds under 'meets_hard_criteria', "
                 "and soft rules/mentor/IRB/visa/stacking/Gaps under 'still_verify' (or 'conflict'/'expired').\n"
                 "4. NEVER output a flat 'you are eligible' or 'you're eligible' verdict."
+                "5. Use human names in entity fields: student full name, grant name, course name, or policy topic. "
+                "Never use source IDs such as 'sql:row:0' as the entity."
             ),
         },
         {
@@ -328,14 +318,7 @@ def generate_claims_with_writer(
             raw_payload = None
 
     if not raw_payload or not isinstance(raw_payload.get("claims"), list):
-        claims = build_grounded_claims_from_sources(
-            state,
-            registry,
-            conflicts=conflicts,
-            deadline_notices=deadline_notices,
-            current_date=cfg.current_date,
-        )
-        return claims, "deterministic_writer_fallback"
+        raise RuntimeError("Synthesis LLM returned no valid JSON claims")
 
     parsed_claims: list[Claim] = []
     for item in raw_payload["claims"]:
@@ -414,20 +397,91 @@ def render_answer_from_claims(
     meets = [c for c in claims if c.section == "meets_hard_criteria"]
     verify = [c for c in claims if c.section in ("still_verify", "conflict", "expired")]
 
-    lines.append("## Meets hard criteria")
-    if meets:
-        for c in meets:
-            cit = f" {c.citation}" if c.citation else ""
-            lines.append(f"- **{c.entity}** · `{c.field}`: `{c.value}` *(source: `{c.source_id}`{cit})*")
-    else:
-        lines.append("- No numeric/database criteria satisfied in retrieved records.")
+    sql_res = state.get("sql_result") or {}
+    sql_rows = sql_res.get("rows") or []
+    grant_rows = [row for row in sql_rows if isinstance(row, dict) and row.get("grant_id")]
+    profile = (id_check.get("profile") or {}) if isinstance(id_check, dict) else {}
+    query_low = str(state.get("query") or "").lower()
 
-    lines.append("")
-    lines.append("## Still verify")
-    if verify:
-        for c in verify:
-            cit = f" {c.citation}" if c.citation else ""
-            lines.append(f"- **{c.entity}** · `{c.field}`: {c.value} *(source: `{c.source_id}`{cit})*")
+    if grant_rows and ("grant" in query_low or "fellowship" in query_low or "fund" in query_low):
+        if profile:
+            student_gpa = float(profile.get("cumulative_gpa") or 0)
+            student_year = int(profile.get("year_of_study") or 0)
+            student_dept = str(profile.get("dept_code") or "")
+            filtered_grant_rows = []
+            for row in grant_rows:
+                if str(row.get("status") or "").lower() != "open":
+                    continue
+                dept = str(row.get("dept_code") or "")
+                if dept not in ("ALL", student_dept):
+                    continue
+                try:
+                    min_gpa = float(row.get("min_gpa") or 0)
+                    min_year = int(row.get("min_year") or 0)
+                    max_year = int(row.get("max_year") or 99)
+                except (TypeError, ValueError):
+                    continue
+                if student_gpa >= min_gpa and min_year <= student_year <= max_year:
+                    filtered_grant_rows.append(row)
+            grant_rows = filtered_grant_rows
+
+        name = str(profile.get("full_name") or "the student")
+        gpa = float(profile.get("cumulative_gpa") or 0)
+        year = int(profile.get("year_of_study") or 0)
+        dept = str(profile.get("dept_code") or "your department")
+        if not grant_rows:
+            lines.append(
+                f"{name} does not currently match any open research grants in the database. "
+                f"Based on the available records, {name} is in Year {year} in {dept}, with a cumulative GPA of {gpa:.2f}, "
+                "and no listed grant satisfies the department, GPA, year, and deadline requirements."
+            )
+        else:
+            names_and_details: list[str] = []
+            for row in grant_rows:
+                grant_name = str(row.get("grant_name") or row.get("grant_id") or "Unnamed grant")
+                amount = row.get("award_amount")
+                deadline = row.get("deadline")
+                description = grant_name
+                if amount is not None:
+                    description += f" (${float(amount):,.2f})"
+                if deadline is not None:
+                    description += f", with a database deadline of {deadline}"
+                names_and_details.append(description)
+            joined = "; ".join(names_and_details[:-1])
+            if names_and_details:
+                joined += ("; and " if joined else "") + names_and_details[-1]
+            lines.append(
+                f"Based on the university database, {name} is a numerical match for the following open research grants: "
+                f"{joined}."
+            )
+            lines.append(
+                f"{name}'s profile is Year {year}, {dept}, with a cumulative GPA of {gpa:.2f}. "
+                "These matches are based on the database criteria; handbook requirements such as mentor approval, "
+                "proposal content, or application timing may still need to be checked."
+            )
+    else:
+        lines.append("## Key result")
+        if meets:
+            for c in meets:
+                cit = f" {c.citation}" if c.citation else ""
+                entity = c.entity if c.entity not in ("sql:row:" + str(i) for i in range(100)) else "Database result"
+                lines.append(
+                    f"- **{entity}:** {c.value}"
+                    f" *(source: `{c.source_id}`{cit})*"
+                )
+        else:
+            lines.append("- No directly grounded numeric/database result was returned.")
+
+        if verify:
+            lines.append("")
+            lines.append("## Needs verification")
+            for c in verify:
+                cit = f" {c.citation}" if c.citation else ""
+                lines.append(
+                    f"- **{c.entity}:** {c.value}"
+                    f" *(source: `{c.source_id}`{cit})*"
+                )
+
     for conf in conflicts:
         lines.append(f"- **DB vs. PDF Conflict:** {conf.summary}")
     for dl in deadline_notices:
@@ -436,14 +490,14 @@ def render_answer_from_claims(
         lines.append(f"- **Missing Evidence / Prerequisite:** {miss}")
 
     if not verify and not conflicts and not deadline_notices and not missing_evidence_notices:
-        lines.append("- Confirm final enrollment and advisor records at submission time.")
+        if not (grant_rows and ("grant" in query_low or "fellowship" in query_low or "fund" in query_low)):
+            lines.append("- Confirm final enrollment and advisor records at submission time.")
 
-    if not verification.passed and verification.issues:
+    if not verification.passed:
         lines.append("")
-        lines.append("### Unverified Claim Details")
-        for issue in verification.issues:
-            lines.append(
-                f"- `{issue.entity}.{issue.field}` (`{issue.source_id}`, {issue.check_type}): {issue.message}"
-            )
+        lines.append(
+            "> **Verification notice:** This answer may contain unverified claim details. "
+            "Use the evidence trace before acting."
+        )
 
     return "\n".join(lines)

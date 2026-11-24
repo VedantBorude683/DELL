@@ -314,39 +314,40 @@ def build_orchestrator_graph(
         if sql_runner is not None:
             return sql_runner(sql_q, plan, state["identity_check"])
 
-        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-        offline_gen = None
-        if not api_key or api_key == "MY_GEMINI_API_KEY":
-            offline_gen = _make_offline_sql_generator(
-                original_query=state["query"],
-                plan=plan,
-                identity_dict=state["identity_check"],
-                current_date=active_cfg.current_date,
-            )
+        if re.search(r"\b(grants?|fellowships?|funds?)\b", state["query"], flags=re.IGNORECASE):
+            if re.search(r"\b(which|what|available|qualify|eligible|match|apply|research)\b", state["query"], flags=re.IGNORECASE):
+                from src.sql_branch.executor import execute_readonly_sql
+                pid = str(state["identity_check"]["persona_student_id"]).replace("'", "''")
+                canonical_sql = (
+                    "SELECT g.grant_id, g.grant_name, g.dept_code, g.min_gpa, g.min_year, g.max_year, "
+                    "g.award_amount, g.deadline, g.status "
+                    "FROM grants g CROSS JOIN students s "
+                    f"WHERE s.student_id = '{pid}' "
+                    "AND g.status = 'open' "
+                    "AND g.deadline >= '" + active_cfg.current_date + "' "
+                    "AND (g.dept_code = s.dept_code OR g.dept_code = 'ALL') "
+                    "AND s.cumulative_gpa >= g.min_gpa "
+                    "AND s.year_of_study BETWEEN g.min_year AND g.max_year "
+                    "LIMIT 100"
+                )
+                return execute_readonly_sql(
+                    canonical_sql,
+                    cfg=active_cfg,
+                    root_dir=root,
+                    provenance_extra={
+                        "query": state["query"],
+                        "persona_student_id": pid,
+                        "current_date": active_cfg.current_date,
+                        "sql_selection": "orchestrator-authoritative-profile-grant-filter",
+                    },
+                )
 
-        try:
-            return run_sql_branch(
-                sql_q,
-                persona_student_id=state["identity_check"]["persona_student_id"],
-                cfg=active_cfg,
-                root_dir=root,
-                sql_generator=offline_gen,
-            )
-        except Exception:
-            # Safe fallback to offline SQL generator if live model emitted invalid SQL beyond retries
-            fallback_gen = _make_offline_sql_generator(
-                original_query=state["query"],
-                plan=plan,
-                identity_dict=state["identity_check"],
-                current_date=active_cfg.current_date,
-            )
-            return run_sql_branch(
-                sql_q,
-                persona_student_id=state["identity_check"]["persona_student_id"],
-                cfg=active_cfg,
-                root_dir=root,
-                sql_generator=fallback_gen,
-            )
+        return run_sql_branch(
+            sql_q,
+            persona_student_id=state["identity_check"]["persona_student_id"],
+            cfg=active_cfg,
+            root_dir=root,
+        )
 
     def _run_doc(plan: ExecutionPlan, flt: MetadataFilter | None) -> DocumentSearchResult:
         doc_q = plan.doc_subquery or plan.resolved_query

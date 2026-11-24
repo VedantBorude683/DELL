@@ -1,0 +1,1033 @@
+{
+  "generated_at": "2026-11-24T08:32:17",
+  "api_url": "http://127.0.0.1:8000",
+  "persona_student_id": "STU-1001",
+  "test_count": 10,
+  "success_count": 10,
+  "routing_accuracy": 1.0,
+  "verification_pass_rate": 1.0,
+  "results": [
+    {
+      "question": "What is Maya Lin's cumulative GPA?",
+      "expected_route": "sql",
+      "actual_route": "sql",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": "SELECT cumulative_gpa FROM students WHERE full_name = 'Maya Lin' LIMIT 1",
+      "sql_row_count": 1,
+      "sql_rows": [
+        {
+          "cumulative_gpa": "3.74"
+        }
+      ],
+      "pdf_passage_count": 0,
+      "pdf_citations": [],
+      "pdf_passages": [],
+      "answer": "## Meets hard criteria\n- **Maya Lin** · `cumulative_gpa`: `3.74` *(source: `sql:identity:STU-1001`)*\n\n## Still verify\n- Confirm final enrollment and advisor records at submission time.",
+      "verification_passed": true,
+      "latency_ms": 30130.95,
+      "token_summary": {
+        "total_prompt_tokens": 2475,
+        "total_completion_tokens": 198,
+        "total_tokens": 2673,
+        "total_cost_usd": 0.001633,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T02:58:34.254655+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 841,
+            "completion_tokens": 78,
+            "latency_ms": 1435.15,
+            "cost_usd": 0.000576
+          },
+          {
+            "timestamp": "2026-11-24T02:58:44.514928+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1137,
+            "completion_tokens": 29,
+            "latency_ms": 1183.73,
+            "cost_usd": 0.000626
+          },
+          {
+            "timestamp": "2026-11-24T02:58:46.119257+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 497,
+            "completion_tokens": 91,
+            "latency_ms": 1466.3,
+            "cost_usd": 0.000431
+          }
+        ],
+        "total_latency_ms": 13393.33
+      },
+      "status": "success"
+    },
+    {
+      "question": "Which open grants may Maya Lin qualify for based on the database?",
+      "expected_route": "sql",
+      "actual_route": "sql",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": "SELECT * FROM grants WHERE status = 'open' AND deadline >= '2026-11-23' AND (dept_code = 'CS' OR dept_code = 'ALL') AND min_gpa <= 3.74 AND min_year <= 3 LIMIT 100",
+      "sql_row_count": 5,
+      "sql_rows": [
+        {
+          "grant_id": "GR-CS-01",
+          "grant_name": "Turing Undergraduate Research Fellowship",
+          "dept_code": "CS",
+          "min_gpa": "3.50",
+          "min_year": 2,
+          "max_year": 4,
+          "award_amount": "5500.00",
+          "deadline": "2026-12-15",
+          "status": "open",
+          "funding_cycle": "Spring 2027"
+        },
+        {
+          "grant_id": "GR-CS-02",
+          "grant_name": "Alderwood AI Systems Innovation Stipend",
+          "dept_code": "CS",
+          "min_gpa": "3.25",
+          "min_year": 3,
+          "max_year": 4,
+          "award_amount": "4000.00",
+          "deadline": "2026-12-20",
+          "status": "open",
+          "funding_cycle": "Spring 2027"
+        },
+        {
+          "grant_id": "GR-CS-03",
+          "grant_name": "First-Year Computing Discovery Award",
+          "dept_code": "CS",
+          "min_gpa": "3.60",
+          "min_year": 1,
+          "max_year": 2,
+          "award_amount": "2500.00",
+          "deadline": "2027-01-15",
+          "status": "open",
+          "funding_cycle": "Spring 2027"
+        },
+        {
+          "grant_id": "GR-GEN-01",
+          "grant_name": "Provost Cross-Disciplinary Research Grant",
+          "dept_code": "ALL",
+          "min_gpa": "3.50",
+          "min_year": 2,
+          "max_year": 4,
+          "award_amount": "3500.00",
+          "deadline": "2026-12-30",
+          "status": "open",
+          "funding_cycle": "Spring 2027"
+        },
+        {
+          "grant_id": "GR-GEN-02",
+          "grant_name": "Alderwood Student Conference Travel Fund",
+          "dept_code": "ALL",
+          "min_gpa": "3.00",
+          "min_year": 1,
+          "max_year": 4,
+          "award_amount": "1200.00",
+          "deadline": "2027-02-01",
+          "status": "open",
+          "funding_cycle": "Spring 2027"
+        }
+      ],
+      "pdf_passage_count": 0,
+      "pdf_citations": [],
+      "pdf_passages": [],
+      "answer": "## Meets hard criteria\n- **GR-CS-01** · `grant_name`: `Turing Undergraduate Research Fellowship` *(source: `sql:row:0`)*\n- **GR-CS-02** · `grant_name`: `Alderwood AI Systems Innovation Stipend` *(source: `sql:row:1`)*\n- **GR-GEN-01** · `grant_name`: `Provost Cross-Disciplinary Research Grant` *(source: `sql:row:3`)*\n- **GR-GEN-02** · `grant_name`: `Alderwood Student Conference Travel Fund` *(source: `sql:row:4`)*\n\n## Still verify\n- Confirm final enrollment and advisor records at submission time.",
+      "verification_passed": true,
+      "latency_ms": 29291.45,
+      "token_summary": {
+        "total_prompt_tokens": 4950,
+        "total_completion_tokens": 1412,
+        "total_tokens": 6362,
+        "total_cost_usd": 0.005298,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T02:58:47.989688+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 849,
+            "completion_tokens": 134,
+            "latency_ms": 1838.7,
+            "cost_usd": 0.000692
+          },
+          {
+            "timestamp": "2026-11-24T02:59:05.911732+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1031,
+            "completion_tokens": 75,
+            "latency_ms": 8958.69,
+            "cost_usd": 0.000665
+          },
+          {
+            "timestamp": "2026-11-24T02:59:13.170104+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1120,
+            "completion_tokens": 877,
+            "latency_ms": 7181.95,
+            "cost_usd": 0.002314
+          },
+          {
+            "timestamp": "2026-11-24T02:59:15.411075+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1950,
+            "completion_tokens": 326,
+            "latency_ms": 2238.27,
+            "cost_usd": 0.001627
+          }
+        ],
+        "total_latency_ms": 29274.96
+      },
+      "status": "success"
+    },
+    {
+      "question": "What is the submission window for the Turing Undergraduate Research Fellowship?",
+      "expected_route": "vector",
+      "actual_route": "vector",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": null,
+      "sql_row_count": 0,
+      "sql_rows": [],
+      "pdf_passage_count": 3,
+      "pdf_citations": [
+        "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+        "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+        "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]"
+      ],
+      "pdf_passages": [
+        {
+          "text": "2. Legacy Submission Window and Mentor Rules — For the 2025-2026 cycle, the submission window for the Turing Undergraduate Research Fellowship closed on December 10, 2025. The Summer 2026 Heritage Innovation Grant (GR- GEN-04) opened for one cycle only with a submission window closing June 30, 2026. Faculty endorsement was optional in v1.0 for third-year Computer Science students with prior coursework in CS-301.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v1.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+          "chunk_id": "01_undergrad_research_grants_v1_2025_p1_c03",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2025-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 1,
+          "fts_rank": 2,
+          "rrf_score": 0.032522,
+          "rerank_score": 0.7308,
+          "crag_grade": "relevant"
+        },
+        {
+          "text": "2. Computer Science Grants and Submission Windows — Turing Undergraduate Research Fellowship (GR-CS-01): Open to CS students in years 2 through 4 with at least a 3.50 cumulative GPA ($5,500 award). IMPORTANT: Per Committee Amendment 2026-B, the submission window closes on December 1, 2026 at 5:00 PM EST (note: Registrar systems may still display an older cycle date). Soft eligibility conditions for GR-CS-01: Every applicant needs faculty mentor sponsorship confirmed by a signed endorsement form from an active CS faculty member accepting undergraduates. Furthermore, GR-CS-01 is not stackable with any other internal Alderwood research stipend or Dean Entrance Waiver in the same academic year.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v2.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+          "chunk_id": "02_undergrad_research_grants_v2_2026_p1_c03",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 2,
+          "fts_rank": 1,
+          "rrf_score": 0.032522,
+          "rerank_score": 0.7302,
+          "crag_grade": "relevant"
+        },
+        {
+          "text": "1. Scope and Effective Window (2025-2026 Academic Year) — This 2025 edition (v1.0, effective September 1, 2025) governs undergraduate research stipends for the 2025-2026 academic year. Note: This edition is superseded by v2.0 effective September 1, 2026. Under v1.0 policy, the Turing Undergraduate Research Fellowship (GR-CS-01) carried a base stipend of $4,500 and allowed stacking with department entrance awards. Applicants were evaluated on semester GPA only.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v1.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+          "chunk_id": "01_undergrad_research_grants_v1_2025_p1_c02",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2025-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 3,
+          "fts_rank": null,
+          "rrf_score": 0.015873,
+          "rerank_score": 0.7182,
+          "crag_grade": "ambiguous"
+        }
+      ],
+      "answer": "## Meets hard criteria\n- **Turing Undergraduate Research Fellowship** · `submission_window`: `closes on December 1, 2026 at 5:00 PM EST` *(source: `doc:02_undergrad_research_grants_v2_2026_p1_c03` [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01])*\n\n## Still verify\n- **Turing Undergraduate Research Fellowship** · `legacy_submission_window`: closed on December 10, 2025 *(source: `doc:01_undergrad_research_grants_v1_2025_p1_c03` [HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01])*\n- **Missing Evidence / Prerequisite:** Database does not track completion of non-numeric policy prerequisites (faculty mentor sponsorship; signed advisor / mentor endorsement; not stackable with other internal awards) — verify documentation directly with advisor/office.",
+      "verification_passed": true,
+      "latency_ms": 29897.13,
+      "token_summary": {
+        "total_prompt_tokens": 3077,
+        "total_completion_tokens": 758,
+        "total_tokens": 3835,
+        "total_cost_usd": 0.003054,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T02:59:24.255517+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 847,
+            "completion_tokens": 85,
+            "latency_ms": 8816.07,
+            "cost_usd": 0.000593
+          },
+          {
+            "timestamp": "2026-11-24T02:59:40.623286+00:00",
+            "step": "doc_branch",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 605,
+            "completion_tokens": 240,
+            "latency_ms": 1756.46,
+            "cost_usd": 0.000782
+          },
+          {
+            "timestamp": "2026-11-24T02:59:42.027934+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1055,
+            "completion_tokens": 287,
+            "latency_ms": 1393.29,
+            "cost_usd": 0.001102
+          },
+          {
+            "timestamp": "2026-11-24T02:59:43.999544+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 313,
+            "completion_tokens": 73,
+            "latency_ms": 1969.61,
+            "cost_usd": 0.000302
+          },
+          {
+            "timestamp": "2026-11-24T02:59:45.312250+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 257,
+            "completion_tokens": 73,
+            "latency_ms": 1312.35,
+            "cost_usd": 0.000275
+          }
+        ],
+        "total_latency_ms": 29885.08
+      },
+      "status": "success"
+    },
+    {
+      "question": "What deadline does the database list for GR-CS-01, and what date appears in the 2026 handbook?",
+      "expected_route": "hybrid",
+      "actual_route": "hybrid",
+      "route_correct": true,
+      "execution_mode": "parallel",
+      "decision_path": "strong_planner",
+      "sql": "SELECT grant_id, grant_name AS title, deadline FROM grants WHERE grant_id = 'GR-CS-01' LIMIT 100",
+      "sql_row_count": 1,
+      "sql_rows": [
+        {
+          "grant_id": "GR-CS-01",
+          "title": "Turing Undergraduate Research Fellowship",
+          "deadline": "2026-12-15"
+        }
+      ],
+      "pdf_passage_count": 2,
+      "pdf_citations": [
+        "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+        "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]"
+      ],
+      "pdf_passages": [
+        {
+          "text": "2. Computer Science Grants and Submission Windows — Turing Undergraduate Research Fellowship (GR-CS-01): Open to CS students in years 2 through 4 with at least a 3.50 cumulative GPA ($5,500 award). IMPORTANT: Per Committee Amendment 2026-B, the submission window closes on December 1, 2026 at 5:00 PM EST (note: Registrar systems may still display an older cycle date). Soft eligibility conditions for GR-CS-01: Every applicant needs faculty mentor sponsorship confirmed by a signed endorsement form from an active CS faculty member accepting undergraduates. Furthermore, GR-CS-01 is not stackable with any other internal Alderwood research stipend or Dean Entrance Waiver in the same academic year.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v2.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+          "chunk_id": "02_undergrad_research_grants_v2_2026_p1_c03",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 1,
+          "fts_rank": null,
+          "rrf_score": 0.016393,
+          "rerank_score": 0.7235,
+          "crag_grade": "relevant"
+        },
+        {
+          "text": "2. Legacy Submission Window and Mentor Rules — For the 2025-2026 cycle, the submission window for the Turing Undergraduate Research Fellowship closed on December 10, 2025. The Summer 2026 Heritage Innovation Grant (GR- GEN-04) opened for one cycle only with a submission window closing June 30, 2026. Faculty endorsement was optional in v1.0 for third-year Computer Science students with prior coursework in CS-301.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v1.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+          "chunk_id": "01_undergrad_research_grants_v1_2025_p1_c03",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2025-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 2,
+          "fts_rank": null,
+          "rrf_score": 0.016129,
+          "rerank_score": 0.5124,
+          "crag_grade": "ambiguous"
+        }
+      ],
+      "answer": "## Meets hard criteria\n- **GR-CS-01** · `database deadline`: `2026-12-15` *(source: `sql:row:0`)*\n\n## Still verify\n- **GR-CS-01** · `handbook submission window deadline`: December 1, 2026 at 5:00 PM EST *(source: `doc:02_undergrad_research_grants_v2_2026_p1_c03` [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01])*\n- **DB vs. PDF Conflict:** Conflict for GR-CS-01 deadline: database records '2026-12-15' [sql:row:0], while [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01] states 'December 1, 2026' (2026-12-01) [doc:02_undergrad_research_grants_v2_2026_p1_c03].\n- **Missing Evidence / Prerequisite:** Database does not track completion of non-numeric policy prerequisites (faculty mentor sponsorship; signed advisor / mentor endorsement; not stackable with other internal awards) — verify documentation directly with advisor/office.",
+      "verification_passed": true,
+      "latency_ms": 26089.15,
+      "token_summary": {
+        "total_prompt_tokens": 3743,
+        "total_completion_tokens": 795,
+        "total_tokens": 4538,
+        "total_cost_usd": 0.003461,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T02:59:48.048409+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 877,
+            "completion_tokens": 127,
+            "latency_ms": 2703.24,
+            "cost_usd": 0.000692
+          },
+          {
+            "timestamp": "2026-11-24T02:59:58.993471+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 994,
+            "completion_tokens": 42,
+            "latency_ms": 2166.65,
+            "cost_usd": 0.000581
+          },
+          {
+            "timestamp": "2026-11-24T03:00:04.754205+00:00",
+            "step": "doc_branch",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 626,
+            "completion_tokens": 326,
+            "latency_ms": 1843.1,
+            "cost_usd": 0.000965
+          },
+          {
+            "timestamp": "2026-11-24T03:00:10.223806+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 932,
+            "completion_tokens": 233,
+            "latency_ms": 5461.58,
+            "cost_usd": 0.000932
+          },
+          {
+            "timestamp": "2026-11-24T03:00:11.403019+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 314,
+            "completion_tokens": 67,
+            "latency_ms": 1177.4,
+            "cost_usd": 0.000291
+          }
+        ],
+        "total_latency_ms": 26081.16
+      },
+      "status": "success"
+    },
+    {
+      "question": "What courses is Maya Lin taking in Fall 2026?",
+      "expected_route": "sql",
+      "actual_route": "sql",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": "SELECT c.title AS course_name, c.course_id AS course_code FROM enrollments AS e JOIN courses AS c ON e.course_id = c.course_id WHERE e.student_id = 'STU-1001' AND e.term = 'Fall 2026' LIMIT 100",
+      "sql_row_count": 3,
+      "sql_rows": [
+        {
+          "course_name": "Algorithms and Complexity",
+          "course_code": "CS-301"
+        },
+        {
+          "course_name": "Machine Learning Foundations",
+          "course_code": "CS-340"
+        },
+        {
+          "course_name": "Linear Optimization",
+          "course_code": "MATH-240"
+        }
+      ],
+      "pdf_passage_count": 0,
+      "pdf_citations": [],
+      "pdf_passages": [],
+      "answer": "## Meets hard criteria\n- **Maya Lin** · `course_name`: `Algorithms and Complexity` *(source: `sql:row:0`)*\n- **Maya Lin** · `course_code`: `CS-301` *(source: `sql:row:0`)*\n- **Maya Lin** · `course_name`: `Machine Learning Foundations` *(source: `sql:row:1`)*\n- **Maya Lin** · `course_code`: `CS-340` *(source: `sql:row:1`)*\n- **Maya Lin** · `course_name`: `Linear Optimization` *(source: `sql:row:2`)*\n- **Maya Lin** · `course_code`: `MATH-240` *(source: `sql:row:2`)*\n\n## Still verify\n- Confirm final enrollment and advisor records at submission time.",
+      "verification_passed": true,
+      "latency_ms": 13972.62,
+      "token_summary": {
+        "total_prompt_tokens": 2415,
+        "total_completion_tokens": 653,
+        "total_tokens": 3068,
+        "total_cost_usd": 0.002513,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:00:13.068113+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 851,
+            "completion_tokens": 129,
+            "latency_ms": 1617.8,
+            "cost_usd": 0.000683
+          },
+          {
+            "timestamp": "2026-11-24T03:00:23.620654+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 986,
+            "completion_tokens": 81,
+            "latency_ms": 1516.74,
+            "cost_usd": 0.000655
+          },
+          {
+            "timestamp": "2026-11-24T03:00:25.377391+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 578,
+            "completion_tokens": 443,
+            "latency_ms": 1719.33,
+            "cost_usd": 0.001175
+          }
+        ],
+        "total_latency_ms": 13966.5
+      },
+      "status": "success"
+    },
+    {
+      "question": "How much does Maya Lin still owe?",
+      "expected_route": "sql",
+      "actual_route": "sql",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": "SELECT term, category, (amount_due - amount_paid) AS balance_due FROM fee_ledger WHERE student_id = 'STU-1001' LIMIT 100",
+      "sql_row_count": 1,
+      "sql_rows": [
+        {
+          "term": "Fall 2026",
+          "category": "Tuition & Lab",
+          "balance_due": "0.00"
+        }
+      ],
+      "pdf_passage_count": 0,
+      "pdf_citations": [],
+      "pdf_passages": [],
+      "answer": "## Meets hard criteria\n- **Maya Lin** · `balance_due`: `0.00` *(source: `sql:row:0`)*\n\n## Still verify\n- Confirm final enrollment and advisor records at submission time.",
+      "verification_passed": true,
+      "latency_ms": 21098.15,
+      "token_summary": {
+        "total_prompt_tokens": 2266,
+        "total_completion_tokens": 218,
+        "total_tokens": 2484,
+        "total_cost_usd": 0.001568,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:00:33.474468+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 839,
+            "completion_tokens": 83,
+            "latency_ms": 8080.76,
+            "cost_usd": 0.000585
+          },
+          {
+            "timestamp": "2026-11-24T03:00:44.325532+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 912,
+            "completion_tokens": 51,
+            "latency_ms": 1742.74,
+            "cost_usd": 0.000558
+          },
+          {
+            "timestamp": "2026-11-24T03:00:46.469548+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 515,
+            "completion_tokens": 84,
+            "latency_ms": 2093.16,
+            "cost_usd": 0.000425
+          }
+        ],
+        "total_latency_ms": 21086.72
+      },
+      "status": "success"
+    },
+    {
+      "question": "Can internal Alderwood research stipends be stacked?",
+      "expected_route": "vector",
+      "actual_route": "vector",
+      "route_correct": true,
+      "execution_mode": "single",
+      "decision_path": "strong_planner",
+      "sql": null,
+      "sql_row_count": 0,
+      "sql_rows": [],
+      "pdf_passage_count": 4,
+      "pdf_citations": [
+        "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+        "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-02]",
+        "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+        "[HANDBOOK-ENG-FELLOWSHIPS v1.1, p.1, GR-ECE-01]"
+      ],
+      "pdf_passages": [
+        {
+          "text": "2. Computer Science Grants and Submission Windows — Turing Undergraduate Research Fellowship (GR-CS-01): Open to CS students in years 2 through 4 with at least a 3.50 cumulative GPA ($5,500 award). IMPORTANT: Per Committee Amendment 2026-B, the submission window closes on December 1, 2026 at 5:00 PM EST (note: Registrar systems may still display an older cycle date). Soft eligibility conditions for GR-CS-01: Every applicant needs faculty mentor sponsorship confirmed by a signed endorsement form from an active CS faculty member accepting undergraduates. Furthermore, GR-CS-01 is not stackable with any other internal Alderwood research stipend or Dean Entrance Waiver in the same academic year.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v2.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01]",
+          "chunk_id": "02_undergrad_research_grants_v2_2026_p1_c03",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 4,
+          "fts_rank": null,
+          "rrf_score": 0.015625,
+          "rerank_score": 0.7284,
+          "crag_grade": "relevant"
+        },
+        {
+          "text": "2. Computer Science Grants and Submission Windows — Alderwood AI Systems Innovation Stipend (GR-CS-02): Open to CS students in years 3 through 4 with a 3.25 cumulative GPA ($4,000 award). The submission window closes December 20, 2026. Applicants need faculty mentor sign-off prior to proposal review, and the stipend is not stackable with GR-CS-01.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v2.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-02]",
+          "chunk_id": "02_undergrad_research_grants_v2_2026_p1_c04",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-02",
+          "dept_code": "CS",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 3,
+          "fts_rank": null,
+          "rrf_score": 0.015873,
+          "rerank_score": 0.719,
+          "crag_grade": "relevant"
+        },
+        {
+          "text": "1. Scope and Effective Window (2025-2026 Academic Year) — This 2025 edition (v1.0, effective September 1, 2025) governs undergraduate research stipends for the 2025-2026 academic year. Note: This edition is superseded by v2.0 effective September 1, 2026. Under v1.0 policy, the Turing Undergraduate Research Fellowship (GR-CS-01) carried a base stipend of $4,500 and allowed stacking with department entrance awards. Applicants were evaluated on semester GPA only.",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v1.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v1.0, p.1, GR-CS-01]",
+          "chunk_id": "01_undergrad_research_grants_v1_2025_p1_c02",
+          "chunk_type": "prose",
+          "grant_id": "GR-CS-01",
+          "dept_code": "CS",
+          "effective_date": "2025-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 6,
+          "fts_rank": null,
+          "rrf_score": 0.015152,
+          "rerank_score": 0.5473,
+          "crag_grade": "ambiguous"
+        },
+        {
+          "text": "1. Maxwell Hardware Prototyping Grant (GR-ECE-01) — The Maxwell Hardware Prototyping Grant supports Electrical & Computer Engineering students in years 2 through 4 with a minimum 3.40 cumulative GPA ($4,800). The submission window closes December 10, 2026. Soft conditions: Recipients must pass Cleanroom Lab Safety Clearance before any funds are released to equipment accounts, and each project needs faculty mentor supervision from an ECE lab PI. This award is not stackable with other hardware prototyping stipends.",
+          "doc_id": "HANDBOOK-ENG-FELLOWSHIPS",
+          "version": "v1.1",
+          "page": 1,
+          "citation": "[HANDBOOK-ENG-FELLOWSHIPS v1.1, p.1, GR-ECE-01]",
+          "chunk_id": "04_engineering_and_ece_fellowships_p1_c02",
+          "chunk_type": "prose",
+          "grant_id": "GR-ECE-01",
+          "dept_code": "ECE",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 10,
+          "fts_rank": null,
+          "rrf_score": 0.014286,
+          "rerank_score": 0.5039,
+          "crag_grade": "ambiguous"
+        }
+      ],
+      "answer": "## Meets hard criteria\n- **Maya Lin** · `cumulative_gpa`: `3.74` *(source: `sql:identity:STU-1001`)*\n- **Maya Lin** · `dept_code`: `CS` *(source: `sql:identity:STU-1001`)*\n\n## Still verify\n- **Turing Undergraduate Research Fellowship** · `stacking_policy`: GR-CS-01 is not stackable with any other internal Alderwood research stipend or Dean Entrance Waiver in the same academic year. *(source: `doc:02_undergrad_research_grants_v2_2026_p1_c03` [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-01])*\n- **Alderwood AI Systems Innovation Stipend** · `stacking_policy`: the stipend is not stackable with GR-CS-01. *(source: `doc:02_undergrad_research_grants_v2_2026_p1_c04` [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-CS-02])*\n- **Missing Evidence / Prerequisite:** Database does not track completion of non-numeric policy prerequisites (faculty mentor sponsorship; signed advisor / mentor endorsement; not stackable with other internal awards; cleanroom / lab safety clearance) — verify documentation directly with advisor/office.",
+      "verification_passed": true,
+      "latency_ms": 22361.96,
+      "token_summary": {
+        "total_prompt_tokens": 3475,
+        "total_completion_tokens": 942,
+        "total_tokens": 4417,
+        "total_cost_usd": 0.00362,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:00:49.063645+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 843,
+            "completion_tokens": 62,
+            "latency_ms": 2554.12,
+            "cost_usd": 0.000545
+          },
+          {
+            "timestamp": "2026-11-24T03:01:00.310586+00:00",
+            "step": "doc_branch",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 855,
+            "completion_tokens": 308,
+            "latency_ms": 2284.49,
+            "cost_usd": 0.001043
+          },
+          {
+            "timestamp": "2026-11-24T03:01:02.365087+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1210,
+            "completion_tokens": 450,
+            "latency_ms": 2045.55,
+            "cost_usd": 0.001505
+          },
+          {
+            "timestamp": "2026-11-24T03:01:06.991725+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 323,
+            "completion_tokens": 64,
+            "latency_ms": 4624.76,
+            "cost_usd": 0.000289
+          },
+          {
+            "timestamp": "2026-11-24T03:01:08.834384+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 244,
+            "completion_tokens": 58,
+            "latency_ms": 1841.85,
+            "cost_usd": 0.000238
+          }
+        ],
+        "total_latency_ms": 22348.02
+      },
+      "status": "success"
+    },
+    {
+      "question": "What lab or safety clearance is required for the Maxwell Hardware Prototyping Grant?",
+      "expected_route": "hybrid",
+      "actual_route": "hybrid",
+      "route_correct": true,
+      "execution_mode": "sequential",
+      "decision_path": "strong_planner",
+      "sql": "SELECT r.lab_name, r.safety_clearance_required FROM research_labs AS r JOIN grants AS g ON r.dept_code = g.dept_code WHERE g.grant_name = 'Maxwell Hardware Prototyping Grant' LIMIT 100",
+      "sql_row_count": 1,
+      "sql_rows": [
+        {
+          "lab_name": "Cleanroom Silicon Prototyping Lab",
+          "safety_clearance_required": true
+        }
+      ],
+      "pdf_passage_count": 1,
+      "pdf_citations": [
+        "[HANDBOOK-ENG-FELLOWSHIPS v1.1, p.1, GR-ECE-01]"
+      ],
+      "pdf_passages": [
+        {
+          "text": "1. Maxwell Hardware Prototyping Grant (GR-ECE-01) — The Maxwell Hardware Prototyping Grant supports Electrical & Computer Engineering students in years 2 through 4 with a minimum 3.40 cumulative GPA ($4,800). The submission window closes December 10, 2026. Soft conditions: Recipients must pass Cleanroom Lab Safety Clearance before any funds are released to equipment accounts, and each project needs faculty mentor supervision from an ECE lab PI. This award is not stackable with other hardware prototyping stipends.",
+          "doc_id": "HANDBOOK-ENG-FELLOWSHIPS",
+          "version": "v1.1",
+          "page": 1,
+          "citation": "[HANDBOOK-ENG-FELLOWSHIPS v1.1, p.1, GR-ECE-01]",
+          "chunk_id": "04_engineering_and_ece_fellowships_p1_c02",
+          "chunk_type": "prose",
+          "grant_id": "GR-ECE-01",
+          "dept_code": "ECE",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 1,
+          "fts_rank": 1,
+          "rrf_score": 0.032787,
+          "rerank_score": 0.7308,
+          "crag_grade": "relevant"
+        }
+      ],
+      "answer": "## Meets hard criteria\n- **Maxwell Hardware Prototyping Grant** · `lab_name`: `Cleanroom Silicon Prototyping Lab` *(source: `sql:row:0`)*\n- **Maxwell Hardware Prototyping Grant** · `safety_clearance_required`: `True` *(source: `sql:row:0`)*\n\n## Still verify\n- **Maxwell Hardware Prototyping Grant** · `lab_safety_clearance`: Recipients must pass Cleanroom Lab Safety Clearance before any funds are released to equipment accounts *(source: `doc:04_engineering_and_ece_fellowships_p1_c02` HANDBOOK-ENG-FELLOWSHIPS v1.1, p.1, GR-ECE-01)*\n- **Missing Evidence / Prerequisite:** Database does not track completion of non-numeric policy prerequisites (faculty mentor sponsorship; not stackable with other internal awards; cleanroom / lab safety clearance) — verify documentation directly with advisor/office.",
+      "verification_passed": true,
+      "latency_ms": 33442.93,
+      "token_summary": {
+        "total_prompt_tokens": 4290,
+        "total_completion_tokens": 596,
+        "total_tokens": 4886,
+        "total_cost_usd": 0.003338,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:01:10.625984+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 857,
+            "completion_tokens": 92,
+            "latency_ms": 1754.99,
+            "cost_usd": 0.000612
+          },
+          {
+            "timestamp": "2026-11-24T03:01:21.545898+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 970,
+            "completion_tokens": 67,
+            "latency_ms": 2047.49,
+            "cost_usd": 0.000619
+          },
+          {
+            "timestamp": "2026-11-24T03:01:22.935576+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1261,
+            "completion_tokens": 63,
+            "latency_ms": 1353.87,
+            "cost_usd": 0.000757
+          },
+          {
+            "timestamp": "2026-11-24T03:01:29.616927+00:00",
+            "step": "doc_branch",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 241,
+            "completion_tokens": 77,
+            "latency_ms": 1399.34,
+            "cost_usd": 0.000275
+          },
+          {
+            "timestamp": "2026-11-24T03:01:40.756995+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 686,
+            "completion_tokens": 243,
+            "latency_ms": 11125.81,
+            "cost_usd": 0.000829
+          },
+          {
+            "timestamp": "2026-11-24T03:01:42.271463+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 275,
+            "completion_tokens": 54,
+            "latency_ms": 1512.36,
+            "cost_usd": 0.000246
+          }
+        ],
+        "total_latency_ms": 33425.24
+      },
+      "status": "success"
+    },
+    {
+      "question": "Was the Summer 2026 Heritage Innovation Grant expired by November 23, 2026?",
+      "expected_route": "hybrid",
+      "actual_route": "hybrid",
+      "route_correct": true,
+      "execution_mode": "sequential",
+      "decision_path": "strong_planner",
+      "sql": "SELECT grant_id, grant_name, status, deadline FROM grants WHERE grant_name ILIKE '%Summer 2026 Heritage Innovation Grant%' LIMIT 100",
+      "sql_row_count": 1,
+      "sql_rows": [
+        {
+          "grant_id": "GR-GEN-04",
+          "grant_name": "Summer 2026 Heritage Innovation Grant",
+          "status": "expired",
+          "deadline": "2026-06-30"
+        }
+      ],
+      "pdf_passage_count": 1,
+      "pdf_citations": [
+        "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-GEN-04]"
+      ],
+      "pdf_passages": [
+        {
+          "text": "3. Provost Cross-Disciplinary and Expired Grants — Summer 2026 Heritage Innovation Grant (GR-GEN-04): Discontinued for Fall 2026 / Spring",
+          "doc_id": "HANDBOOK-RESEARCH-GRANTS",
+          "version": "v2.0",
+          "page": 1,
+          "citation": "[HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-GEN-04]",
+          "chunk_id": "02_undergrad_research_grants_v2_2026_p1_c08",
+          "chunk_type": "prose",
+          "grant_id": "GR-GEN-04",
+          "dept_code": "ALL",
+          "effective_date": "2026-09-01",
+          "structured_table_json": null,
+          "injection_flagged": false,
+          "vector_rank": 1,
+          "fts_rank": null,
+          "rrf_score": 0.016393,
+          "rerank_score": 0.7137,
+          "crag_grade": "relevant"
+        }
+      ],
+      "answer": "## Meets hard criteria\n- No numeric/database criteria satisfied in retrieved records.\n\n## Still verify\n- **GR-GEN-04** · `status`: expired *(source: `sql:row:0`)*\n- **GR-GEN-04** · `deadline`: 2026-06-30 *(source: `sql:row:0`)*\n- **Summer 2026 Heritage Innovation Grant** · `status`: Discontinued for Fall 2026 / Spring *(source: `doc:02_undergrad_research_grants_v2_2026_p1_c08` [HANDBOOK-RESEARCH-GRANTS v2.0, p.1, GR-GEN-04])*\n- **Deadline Passed:** Deadline passed for GR-GEN-04 (Summer 2026 Heritage Innovation Grant): deadline 2026-06-30 precedes reference date 2026-11-23 (DB status: expired) [sql:row:0].",
+      "verification_passed": true,
+      "latency_ms": 33601.13,
+      "token_summary": {
+        "total_prompt_tokens": 3874,
+        "total_completion_tokens": 897,
+        "total_tokens": 4771,
+        "total_cost_usd": 0.003731,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:01:43.894506+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 871,
+            "completion_tokens": 113,
+            "latency_ms": 1554.7,
+            "cost_usd": 0.000661
+          },
+          {
+            "timestamp": "2026-11-24T03:01:55.059699+00:00",
+            "step": "sql_branch",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 1016,
+            "completion_tokens": 48,
+            "latency_ms": 1604.26,
+            "cost_usd": 0.000604
+          },
+          {
+            "timestamp": "2026-11-24T03:02:01.964769+00:00",
+            "step": "doc_branch",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 175,
+            "completion_tokens": 111,
+            "latency_ms": 1544.17,
+            "cost_usd": 0.000309
+          },
+          {
+            "timestamp": "2026-11-24T03:02:03.778242+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 649,
+            "completion_tokens": 294,
+            "latency_ms": 1804.4,
+            "cost_usd": 0.000913
+          },
+          {
+            "timestamp": "2026-11-24T03:02:12.202925+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 188,
+            "completion_tokens": 50,
+            "latency_ms": 8423.76,
+            "cost_usd": 0.000194
+          },
+          {
+            "timestamp": "2026-11-24T03:02:14.537502+00:00",
+            "step": "synthesis_writer",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 789,
+            "completion_tokens": 222,
+            "latency_ms": 2332.71,
+            "cost_usd": 0.000839
+          },
+          {
+            "timestamp": "2026-11-24T03:02:15.871391+00:00",
+            "step": "synthesis_claim_check",
+            "tier": "fast",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 186,
+            "completion_tokens": 59,
+            "latency_ms": 1331.98,
+            "cost_usd": 0.000211
+          }
+        ],
+        "total_latency_ms": 33580.37
+      },
+      "status": "success"
+    },
+    {
+      "question": "What is the weather in London today?",
+      "expected_route": "out_of_scope",
+      "actual_route": "out_of_scope",
+      "route_correct": true,
+      "execution_mode": "refuse",
+      "decision_path": "strong_planner",
+      "sql": null,
+      "sql_row_count": 0,
+      "sql_rows": [],
+      "pdf_passage_count": 0,
+      "pdf_citations": [],
+      "pdf_passages": [],
+      "answer": "## Out of Scope\nRequest declined (out_of_scope / strong_planner): The user is asking about the weather in London, which is non-university trivia and completely unrelated to Alderwood University data, policies, or academic records. I can only answer verified Alderwood University academic, grant, fee, and policy questions.\n\n## Meets hard criteria\n- None (request declined prior to data retrieval).\n\n## Still verify\n- Submit an academic, grant eligibility, fee, or campus policy question instead.",
+      "verification_passed": true,
+      "latency_ms": 1977.23,
+      "token_summary": {
+        "total_prompt_tokens": 839,
+        "total_completion_tokens": 64,
+        "total_tokens": 903,
+        "total_cost_usd": 0.000548,
+        "llm_calls": [
+          {
+            "timestamp": "2026-11-24T03:02:17.856314+00:00",
+            "step": "router_planner",
+            "tier": "strong",
+            "model": "gemini-3.5-flash-lite",
+            "prompt_tokens": 839,
+            "completion_tokens": 64,
+            "latency_ms": 1943.98,
+            "cost_usd": 0.000548
+          }
+        ],
+        "total_latency_ms": 1967.2
+      },
+      "status": "success"
+    }
+  ]
+}

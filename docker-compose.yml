@@ -19,5 +19,57 @@ services:
       timeout: 5s
       retries: 10
 
+  ingest:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["python", "-m", "scripts.build_phase2"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-alderwood_admin}:${POSTGRES_PASSWORD:-alderwood_dev_password}@postgres:5432/${POSTGRES_DB:-alderwood_rag}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      HF_HOME: /models
+    volumes:
+      - model_cache:/models
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-alderwood_admin}:${POSTGRES_PASSWORD:-alderwood_dev_password}@postgres:5432/${POSTGRES_DB:-alderwood_rag}
+      READONLY_DATABASE_URL: postgresql+psycopg://alderwood_readonly:alderwood_ro_password@postgres:5432/${POSTGRES_DB:-alderwood_rag}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      FAST_MODEL: ${FAST_MODEL:-gemini-2.5-flash}
+      STRONG_MODEL: ${STRONG_MODEL:-gemini-2.5-pro}
+      HF_HOME: /models
+    volumes:
+      - model_cache:/models
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      ingest:
+        condition: service_completed_successfully
+
+  ui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["streamlit", "run", "app_streamlit.py", "--server.address", "0.0.0.0", "--server.port", "8501"]
+    environment:
+      API_BASE_URL: http://api:8000
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_started
+
 volumes:
   pgdata:
+  model_cache:

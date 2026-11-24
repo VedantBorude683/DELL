@@ -88,7 +88,7 @@ def _entity_matches_sql_row(entity: str, row: dict[str, Any]) -> bool:
     ent_low = _norm_str(entity)
     if not ent_low or ent_low in ("aggregate", "summary", "query", "all"):
         return True
-    id_keys = ("grant_id", "student_id", "course_id", "faculty_name", "waiver_id", "ledger_id", "lab_id", "full_name")
+    id_keys = ("grant_id", "grant_name", "student_id", "course_id", "faculty_name", "waiver_id", "ledger_id", "lab_id", "full_name")
     present_ids = [_norm_str(row[k]) for k in id_keys if k in row and row[k] is not None]
     if not present_ids:
         return True
@@ -222,7 +222,10 @@ def verify_claims(
                 )
                 continue
 
-            if not _entity_matches_sql_row(claim.entity, row):
+            entity_matches = claim.entity == sid
+            if not entity_matches:
+                entity_matches = _entity_matches_sql_row(claim.entity, row)
+            if not entity_matches:
                 issues.append(
                     VerificationIssue(
                         claim_index=idx,
@@ -339,17 +342,14 @@ def verify_claims(
         api_key = os.environ.get("GEMINI_API_KEY", "").strip()
         if claim_checker_fn is not None:
             llm_backend = "custom_claim_checker"
-        elif api_key and api_key != "MY_GEMINI_API_KEY":
-            llm_backend = f"llm_fast:{active_cfg.raw.get('models', {}).get('default_fast_model', 'gemini-2.5-flash')}"
         else:
-            llm_backend = "deterministic_entailment_fallback"
+            llm_backend = f"llm_fast:{active_cfg.raw.get('models', {}).get('default_fast_model', 'gemini-2.5-flash')}"
 
         for idx, claim, passage in policy_claims:
             if claim_checker_fn is not None:
                 verdict = claim_checker_fn(claim, passage)
-            elif api_key and api_key != "MY_GEMINI_API_KEY":
-                try:
-                    msgs = [
+            else:
+                msgs = [
                         {
                             "role": "system",
                             "content": (
@@ -366,12 +366,10 @@ def verify_claims(
                             ),
                         },
                     ]
-                    res = llm("fast", msgs, schema=LLM_CLAIM_CHECK_SCHEMA, cfg=active_cfg)
-                    verdict = res.parsed if isinstance(res.parsed, dict) else _offline_llm_claim_check(claim, passage)
-                except Exception:
-                    verdict = _offline_llm_claim_check(claim, passage)
-            else:
-                verdict = _offline_llm_claim_check(claim, passage)
+                res = llm("fast", msgs, schema=LLM_CLAIM_CHECK_SCHEMA, cfg=active_cfg)
+                if not isinstance(res.parsed, dict):
+                    raise RuntimeError("Claim-check LLM returned no valid JSON verdict")
+                verdict = res.parsed
 
             supported = bool(verdict.get("supported", False))
             contradiction = bool(verdict.get("contradiction", False))

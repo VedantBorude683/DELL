@@ -329,49 +329,19 @@ def plan_query(
         identity_check=identity_check,
     )
 
-    # Layer 3: Embedding Fast Path against calibrated exemplar threshold
-    idx = exemplar_index or ExemplarIndex()
-    ex_match: ExemplarMatch = idx.match(
-        query,
-        threshold=threshold,
-        has_prior_turn=bool(last_plan or last_entities) and was_follow_up,
-    )
-
-    if ex_match.matched_route is not None and not was_follow_up:
-        route = ex_match.matched_route
-        if route == "sql":
-            mode: ExecutionMode = "single"
-            sql_sub: str | None = resolved_query
-            doc_sub: str | None = None
-        elif route == "vector":
-            mode = "single"
-            sql_sub = None
-            doc_sub = resolved_query
-        elif route == "hybrid":
-            mode = _choose_hybrid_mode(query, target_grants)
-            sql_sub = resolved_query
-            doc_sub = resolved_query
-        else:
-            mode = "refuse"
-            sql_sub = None
-            doc_sub = None
-
-        return ExecutionPlan(
-            route=route,
-            execution_mode=mode,
-            sql_subquery=sql_sub,
-            doc_subquery=doc_sub,
-            resolved_query=resolved_query,
-            target_grant_ids=target_grants,
-            target_faculty_names=target_faculty,
-            decision_path="fast_path_exemplar",
-            exemplar_similarity=ex_match.top_similarity,
-            reasoning=f"Matched '{ex_match.matched_exemplar}' ({ex_match.top_similarity:.3f} >= {threshold:.2f}).",
-        )
-
-    # Layer 4: Escalate to STRONG_MODEL JSON Planner
+    # Layer 3: real STRONG_MODEL JSON router/planner. No offline route guessing.
     decision_path = "strong_planner"
     plan_dict: dict[str, Any] | None = None
+    ex_match = ExemplarMatch(
+        matched_route=None,
+        matched_exemplar=None,
+        top_route="sql",
+        top_similarity=0.0,
+        second_route="vector",
+        margin=0.0,
+        second_similarity=0.0,
+        escalate_reason="real_llm_router",
+    )
 
     profile_summary = (
         identity_check.profile.to_dict() if identity_check.profile else {"student_id": identity_check.persona_student_id}
@@ -387,6 +357,10 @@ def plan_query(
                 "- vector: general university policy, soft conditions, submission windows, stacking, handbook rules.\n"
                 "- hybrid: needs BOTH DB numbers/eligibility AND handbook policy rules.\n"
                 "- out_of_scope: non-university trivia or unsafe mutation/exfiltration.\n"
+                "- If the question explicitly says 'based on the database', 'in the database', or asks only for a relational record/amount/schedule, route sql even if policy wording is nearby.\n"
+                "- Route hybrid when the question compares a DB deadline/status/eligibility against handbook policy, or asks whether a specific grant is expired plus handbook rules.\n"
+                "- If a question asks 'was <grant> expired by <date>?' or 'expired by' plus a grant name, use hybrid: SQL confirms the database status/deadline and PDF confirms the handbook/official policy status.\n"
+                "- If a question asks 'which open grants may <student> qualify for based on the database?', use sql and apply student department (or ALL), cumulative GPA, year, status='open', and deadline >= today in the SQL subquery.\n"
                 "- For hybrid, choose execution_mode='sequential' when SQL finds grant_ids to filter policy docs; "
                 "'parallel' only when both grant_ids/topics are already known and independent.\n"
                 "Return strict JSON matching schema."
@@ -409,31 +383,16 @@ def plan_query(
     if planner_fn is not None:
         plan_dict = planner_fn(planner_messages, PLANNER_JSON_SCHEMA)
     else:
-        api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-        if api_key and api_key != "MY_GEMINI_API_KEY":
-            try:
-                res = llm(
-                    "strong",
-                    planner_messages,
-                    schema=PLANNER_JSON_SCHEMA,
-                    cfg=active_cfg,
-                    log_path=root / "logs" / "llm_calls.jsonl",
-                )
-                if isinstance(res.parsed, dict):
-                    plan_dict = res.parsed
-            except Exception:
-                plan_dict = None
-
-    if not plan_dict:
-        decision_path = "strong_planner_offline_fallback"
-        plan_dict = _deterministic_strong_planner(
-            query,
-            resolved_query,
-            identity_check=identity_check,
-            target_grants=target_grants,
-            target_faculty=target_faculty,
-            last_plan=last_plan,
+        res = llm(
+            "strong",
+            planner_messages,
+            schema=PLANNER_JSON_SCHEMA,
+            cfg=active_cfg,
+            log_path=root / "logs" / "llm_calls.jsonl",
         )
+        if not isinstance(res.parsed, dict):
+            raise RuntimeError("Router LLM returned no valid JSON plan")
+        plan_dict = res.parsed
 
     route_val = str(plan_dict.get("route", "hybrid"))
     if route_val not in ("sql", "vector", "hybrid", "out_of_scope"):

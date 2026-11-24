@@ -302,6 +302,51 @@ def ingest_pdfs(
     conn.commit()
     conn.close()
 
+    # Mirror chunks into Postgres pgvector when DATABASE_URL is configured.
+    database_url = __import__("os").environ.get("DATABASE_URL", "").strip()
+    if database_url:
+        try:
+            from sqlalchemy import create_engine, text  # type: ignore
+
+            engine = create_engine(database_url, pool_pre_ping=True)
+            with engine.begin() as conn:
+                conn.execute(text("DELETE FROM document_chunks"))
+                for c in raw_chunks:
+                    vec = "[" + ",".join(f"{x:.6f}" for x in c["embedding"]) + "]"
+                    conn.execute(
+                        text(
+                            """
+                            INSERT INTO document_chunks (
+                                chunk_id, doc_id, version, effective_date, grant_id, dept_code,
+                                year_scope, page_num, chunk_type, content, structured_table_json,
+                                injection_flagged, embedding
+                            ) VALUES (
+                                :chunk_id, :doc_id, :version, CAST(:effective_date AS date),
+                                :grant_id, :dept_code, :year_scope, :page_num, :chunk_type,
+                                :content, CAST(:structured_table_json AS jsonb),
+                                :injection_flagged, CAST(:embedding AS vector)
+                            )
+                            """
+                        ),
+                        {
+                            "chunk_id": c["chunk_id"],
+                            "doc_id": c["doc_id"],
+                            "version": c["version"],
+                            "effective_date": c["effective_date"],
+                            "grant_id": c["grant_id"],
+                            "dept_code": c["dept_code"],
+                            "year_scope": c["year_scope"],
+                            "page_num": c["page_num"],
+                            "chunk_type": c["chunk_type"],
+                            "content": c["content"],
+                            "structured_table_json": json.dumps(c["structured_table_json"]) if c["structured_table_json"] else None,
+                            "injection_flagged": bool(c["injection_flagged"]),
+                            "embedding": vec,
+                        },
+                    )
+        except Exception as exc:
+            raise RuntimeError(f"Postgres PDF ingestion failed: {exc}") from exc
+
     # Entity linking match rate: among chunks mentioning specific grant IDs or grant program names
     grant_mention_re = re.compile(
         r"(?:\bGR-[A-Z]+-\d{2}\b|turing\s+(?:undergraduate\s+research\s+)?fellowship|"

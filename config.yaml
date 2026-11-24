@@ -13,8 +13,8 @@ feature_flags:
 models:
   fast_model_env: "FAST_MODEL"
   strong_model_env: "STRONG_MODEL"
-  default_fast_model: "gemini-2.5-flash"
-  default_strong_model: "gemini-2.5-pro"
+  default_fast_model: "gemini-3.5-flash-lite"
+  default_strong_model: "gemini-3.5-flash-lite"
   embedding_model: "BAAI/bge-m3"
   reranker_model: "BAAI/bge-reranker-v2-m3"
   embedding_dim: 1024

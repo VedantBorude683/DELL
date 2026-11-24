@@ -91,6 +91,8 @@ def build_sql_messages(
         "3. Use cumulative_gpa for grant/honors eligibility unless the user explicitly asks for semester_gpa.\n"
         "4. Include a LIMIT <= 100.\n"
         "5. Return JSON with key 'sql'."
+        "6. For questions asking which grants a logged-in student qualifies for, join or select the authoritative student profile and filter open grants by department or ALL, cumulative_gpa >= min_gpa, year between min_year and max_year, and deadline >= today's reference date.\n"
+        "7. Do not invent student-specific relationships or join tables that are absent from the trimmed schema. Use scalar subqueries or JOINs only when the profile table and grant table are both included.\n"
     )
     user_prompt = (
         f"Current Date: {current_date}\n"
@@ -157,6 +159,43 @@ def run_sql_branch(
     schema_k = max(2, min(3, top_k if top_k is not None else configured_k))
     max_retries = int(active_cfg.raw.get("sql_branch", {}).get("max_retries", 3))
 
+    grant_availability_query = bool(
+        persona_student_id
+        and re.search(r"\b(grants?|fellowships?|funds?)\b", query, flags=re.IGNORECASE)
+        and re.search(r"\b(which|what|available|qualify|eligible|match|apply|research)\b", query, flags=re.IGNORECASE)
+    )
+    if grant_availability_query:
+        sid = str(persona_student_id).replace("'", "''")
+        canonical_sql = (
+            "SELECT g.grant_id, g.grant_name, g.dept_code, g.min_gpa, g.min_year, g.max_year, "
+            "g.award_amount, g.deadline, g.status "
+            "FROM grants g CROSS JOIN students s "
+            f"WHERE s.student_id = '{sid}' "
+            "AND g.status = 'open' "
+            "AND g.deadline >= '" + active_cfg.current_date + "' "
+            "AND (g.dept_code = s.dept_code OR g.dept_code = 'ALL') "
+            "AND s.cumulative_gpa >= g.min_gpa "
+            "AND s.year_of_study BETWEEN g.min_year AND g.max_year "
+            "LIMIT 100"
+        )
+        return execute_readonly_sql(
+            canonical_sql,
+            cfg=active_cfg,
+            root_dir=root,
+            provenance_extra={
+                "query": query,
+                "persona_student_id": persona_student_id,
+                "current_date": active_cfg.current_date,
+                "schema_index_used": False,
+                "retrieved_tables": ["students", "grants"],
+                "attempts": 1,
+                "retries_used": 0,
+                "max_retries": max_retries,
+                "heal_errors": [],
+                "sql_selection": "authoritative-profile-grant-filter",
+            },
+        )
+
     if active_cfg.flags.use_schema_index:
         hits = retrieve_tables(query, top_k=schema_k, root_dir=root, cfg=active_cfg)
         selected_tables = [h.table_name for h in hits]
@@ -177,6 +216,12 @@ def run_sql_branch(
     last_error: Exception | None = None
     max_attempts = 1 + max_retries
 
+    grant_availability_query = bool(
+        persona_student_id
+        and re.search(r"\b(grants?|fellowships?|funds?)\b", query, flags=re.IGNORECASE)
+        and re.search(r"\b(which|what|available|qualify|eligible|match|apply)\b", query, flags=re.IGNORECASE)
+    )
+
     for attempt in range(1, max_attempts + 1):
         messages = build_sql_messages(
             query,
@@ -188,6 +233,31 @@ def run_sql_branch(
         )
         raw_output = generator(messages, SQL_RESPONSE_SCHEMA)
         candidate_sql = _extract_sql_text(raw_output)
+
+        if grant_availability_query:
+            try:
+                from src.orchestrator.identity import load_student_profile
+                profile = load_student_profile(
+                    persona_student_id,
+                    root_dir=root,
+                    cfg=active_cfg,
+                )
+                if profile is not None:
+                    sid = persona_student_id.replace("'", "''")
+                    candidate_sql = (
+                        "SELECT g.grant_id, g.grant_name, g.dept_code, g.min_gpa, g.min_year, g.max_year, "
+                        "g.award_amount, g.deadline, g.status "
+                        "FROM grants g CROSS JOIN students s "
+                        f"WHERE s.student_id = '{sid}' "
+                        "AND g.status = 'open' "
+                        "AND g.deadline >= '" + active_cfg.current_date + "' "
+                        "AND (g.dept_code = s.dept_code OR g.dept_code = 'ALL') "
+                        "AND s.cumulative_gpa >= g.min_gpa "
+                        "AND s.year_of_study BETWEEN g.min_year AND g.max_year "
+                        "LIMIT 100"
+                    )
+            except Exception:
+                pass
 
         try:
             result = execute_readonly_sql(
