@@ -114,8 +114,24 @@ def render_streamlit_app() -> None:
     """Render full Streamlit UI (requires `streamlit` installed)."""
     import streamlit as st  # type: ignore
 
-    try:
-        if hasattr(st, "secrets"):
+    # Streamlit requires this to be the first Streamlit API call.  In
+    # particular, touching ``st.secrets`` before this call can count as a
+    # Streamlit command and prevent the page from rendering.
+    st.set_page_config(
+        page_title="Alderwood University Assistant",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
+    # Avoid asking Streamlit for secrets when no secrets file exists: that
+    # otherwise produces a visible "No secrets found" error in local/ngrok
+    # deployments. Environment variables remain supported in all cases.
+    secrets_paths = (
+        Path.home() / ".streamlit" / "secrets.toml",
+        ROOT / ".streamlit" / "secrets.toml",
+    )
+    if any(path.is_file() for path in secrets_paths):
+        try:
             secret_values = st.secrets.to_dict()
             for key in (
                 "GEMINI_API_KEY",
@@ -127,14 +143,11 @@ def render_streamlit_app() -> None:
                 value = secret_values.get(key)
                 if value:
                     os.environ[key] = str(value)
-    except Exception:
-        pass
+        except Exception:
+            # Missing or malformed optional local secrets must not prevent the
+            # public UI from starting.
+            pass
 
-    st.set_page_config(
-        page_title="Alderwood University Assistant",
-        layout="wide",
-        initial_sidebar_state="expanded",
-    )
     st.markdown(
         """
         <style>
